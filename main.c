@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ESCAPE_KEY (27)
+#define KEY_ESCAPE (27)
+#define KEY_LEFT ('j')
+#define KEY_RIGHT ('l')
+
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
@@ -20,9 +23,10 @@ int main(int argc, char** argv)
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
+
     glutKeyboardFunc(on_keyboard);
-    glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
+    glutDisplayFunc(on_display);
 
     glClearColor(0.75, 0.75, 0.75, 0.0);
     glEnable(GL_DEPTH_TEST);
@@ -34,8 +38,15 @@ int main(int argc, char** argv)
 void on_keyboard(unsigned char key, int x, int y)
 {
     switch (key) {
-    case ESCAPE_KEY:
+    case KEY_ESCAPE:
         exit(0);
+        break;
+    case KEY_LEFT:
+        printf("go left\n");
+        break;
+    
+    case KEY_RIGHT:
+        printf("go right\n");
         break;
     }
 }
@@ -50,29 +61,20 @@ void on_display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(0, 0, window_width, window_height);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        60, 
-        window_width / (float)window_height,
-        1, 
-        5
-    );
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(
-        1, 2, 3,
-        0, 0, 0,
-        0, 1, 0
-    );
+    
+    double x = 0.87; // ~ sqrt(3) / 2
+    double y = 0.5;
 
     glColor3f(0, 0, 1);
-    glTranslatef(0, 0.5, 0);
-    glScalef(1, 1, 1);
-    glutWireCube(1);
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(0, 1, 0);
+        glVertex3f(x, y, 0);
+        glVertex3f(x, -y, 0);
+        glVertex3f(0, -1, 0);
+        glVertex3f(-x, -y, 0);
+        glVertex3f(-x, y, 0);
+
+    glEnd();
 
     glutSwapBuffers();
 }
