@@ -1,5 +1,5 @@
 INPUT    ?= main.c
-OUTPUT   ?= main
+OUTPUT   ?= main.out
 CC        = gcc
 CFLAGS    = -g -Wall
 LDFLAGS   = -framework GLUT -framework OpenGL -framework Cocoa 
