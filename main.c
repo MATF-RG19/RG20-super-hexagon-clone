@@ -117,7 +117,11 @@ void on_display(void)
 
     glColor3f(0, 0, 1);
     glLoadIdentity();
-    
+    gluLookAt (
+        0.1, 0.2, -0.3, 
+        0.0, 0.0, 0.0, 
+        0.0, 2.0, 0.0
+    );
     //! FIXME
     // glRotatef(20.0, 0, 0, 1);
     // glScalef(0.9, 0.9, 0.9);
