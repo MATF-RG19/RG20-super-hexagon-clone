@@ -5,7 +5,7 @@
 
 
 #define TIMER_ID (0)
-#define TIMER_INTERVAL (20)
+#define TIMER_INTERVAL (17) // ~60 rotations per second
 
 #define KEY_ESCAPE (27)
 #define KEY_LEFT ('j')
@@ -15,26 +15,23 @@
 #define HEXAGON_Y (0.5)
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Y_AXIS (1.0)
-#define HEXAGON_SCALING_FACTOR (0.95)
-#define HEXAGON_ROTATE_STEP (20)
-
+#define HEXAGON_SCALING_FACTOR (0.999)
+#define HEXAGON_ROTATION_STEP (5)
+#define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
+#define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
-
+static void drawHexagon();
 
 static int window_width, window_height;
 static int animation_ongoing;
 
-static double curr_x = HEXAGON_X;
-static double curr_y = HEXAGON_Y;
-static double curr_x_axis = HEXAGON_X_AXIS;
-static double curr_y_axis = HEXAGON_Y_AXIS;
-
 static double scaling_factor = 1;
-static int rotation_step = 0;
+static double rotation_step = 0;
+static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 int main(int argc, char** argv)
 {
@@ -58,7 +55,7 @@ int main(int argc, char** argv)
     glutMainLoop();
 }
 
-void on_keyboard(unsigned char key, int x, int y)
+static void on_keyboard(unsigned char key, int x, int y)
 {
     switch (key) {
     case KEY_ESCAPE:
@@ -66,6 +63,8 @@ void on_keyboard(unsigned char key, int x, int y)
         break;
     case KEY_LEFT:
         printf("go left\n");
+
+        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -74,11 +73,16 @@ void on_keyboard(unsigned char key, int x, int y)
     
     case KEY_RIGHT:
         printf("go right\n");
+        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
+        if(!animation_ongoing) {
+            glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+            animation_ongoing = 1;
+        }
         break;
     }
 }
 
-void on_reshape(int width, int height)
+static void on_reshape(int width, int height)
 {
     window_height = height;
     window_width = width;
@@ -95,7 +99,8 @@ static void on_timer(int value)
         glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
     }
 }
-void on_display(void)
+
+static void on_display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -106,27 +111,30 @@ void on_display(void)
         0.0, 0.0, 0.0, 
         0.0, 2.0, 0.0
     );
-    
-    glRotatef(rotation_step, 0, 0, 1);
+
+    glRotatef(rotation_step * rotation_direction, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
 
     glBegin(GL_LINE_LOOP);
-        glVertex3f(curr_x_axis,  curr_y_axis,   0);
-        glVertex3f(curr_x,       curr_y,        0);
-        glVertex3f(curr_x,      -curr_y,        0);
-        glVertex3f(curr_x_axis, -curr_y_axis,   0);
-        glVertex3f(-curr_x,     -curr_y,        0);
-        glVertex3f(-curr_x,      curr_y,        0);
+        drawHexagon();
     glEnd();
 
-    rotation_step += HEXAGON_ROTATE_STEP;
+    rotation_step += HEXAGON_ROTATION_STEP;
     scaling_factor *= HEXAGON_SCALING_FACTOR;
 
-    printf("x_curr = %lf\ny_curr=%lf\n", curr_x, curr_y);
-    printf("x_curr_axis = %lf\ny_curr_axis=%lf\n", curr_x_axis, curr_y_axis);
-
-
-    
+    printf("rotation_direction: %lf\n", rotation_direction);
 
     glutSwapBuffers();
 }
+
+static void drawHexagon()
+{
+    glVertex3f(HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,   0);
+    glVertex3f(HEXAGON_X,       HEXAGON_Y,        0);
+    glVertex3f(HEXAGON_X,      -HEXAGON_Y,        0);
+    glVertex3f(HEXAGON_X_AXIS, -HEXAGON_Y_AXIS,   0);
+    glVertex3f(-HEXAGON_X,     -HEXAGON_Y,        0);
+    glColor3f(1, 0, 0);
+    glVertex3f(-HEXAGON_X,      HEXAGON_Y,        0);
+}
+
