@@ -8,14 +8,14 @@
 #define TIMER_INTERVAL (17) // ~60 rotations per second
 
 #define KEY_ESCAPE (27)
-#define KEY_LEFT ('j')
-#define KEY_RIGHT ('l')
+#define KEY_LEFT ('a')
+#define KEY_RIGHT ('d')
 
 #define HEXAGON_X (0.87) // ~sqrt(3) / 2
 #define HEXAGON_Y (0.5)
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Y_AXIS (1.0)
-#define HEXAGON_SCALING_FACTOR (0.999)
+#define HEXAGON_SCALING_FACTOR (0.995)
 #define HEXAGON_ROTATION_STEP (5)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
@@ -61,6 +61,7 @@ static void on_keyboard(unsigned char key, int x, int y)
     case KEY_ESCAPE:
         exit(0);
         break;
+
     case KEY_LEFT:
         printf("go left\n");
 
@@ -115,9 +116,13 @@ static void on_display(void)
     glRotatef(rotation_step * rotation_direction, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
 
-    glBegin(GL_LINE_LOOP);
-        drawHexagon();
-    glEnd();
+    drawHexagon(0);
+    drawHexagon(1.1);
+    drawHexagon(0.9);
+    drawHexagon(0.8);
+    drawHexagon(0.7);
+
+    
 
     rotation_step += HEXAGON_ROTATION_STEP;
     scaling_factor *= HEXAGON_SCALING_FACTOR;
@@ -127,14 +132,22 @@ static void on_display(void)
     glutSwapBuffers();
 }
 
-static void drawHexagon()
+static void drawHexagon(double scale_factor)
 {
-    glVertex3f(HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,   0);
-    glVertex3f(HEXAGON_X,       HEXAGON_Y,        0);
-    glVertex3f(HEXAGON_X,      -HEXAGON_Y,        0);
-    glVertex3f(HEXAGON_X_AXIS, -HEXAGON_Y_AXIS,   0);
-    glVertex3f(-HEXAGON_X,     -HEXAGON_Y,        0);
-    glColor3f(1, 0, 0);
-    glVertex3f(-HEXAGON_X,      HEXAGON_Y,        0);
+    printf("drawing with scale factor: %lf\n", scale_factor);
+    glPushMatrix();
+        if (scale_factor != 0) {
+            glScalef(scale_factor, scale_factor, scale_factor);
+        }
+        glBegin(GL_LINE_LOOP);
+            glVertex3f(HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,   0);
+            glVertex3f(HEXAGON_X,       HEXAGON_Y,        0);
+            glVertex3f(HEXAGON_X,      -HEXAGON_Y,        0);
+            glVertex3f(HEXAGON_X_AXIS, -HEXAGON_Y_AXIS,   0);
+            glVertex3f(-HEXAGON_X,     -HEXAGON_Y,        0);
+            glColor3f(1, 0, 0);
+            glVertex3f(-HEXAGON_X,      HEXAGON_Y,        0);
+        glEnd();
+    glPopMatrix();
 }
 
