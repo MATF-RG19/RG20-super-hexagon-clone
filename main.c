@@ -20,11 +20,15 @@
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 
+#define NUMBER_OF_HEXAGONS (5)
+
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 static void drawHexagon();
+static void updateScalingFactors();
+static void drawAllHexagons();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -32,6 +36,8 @@ static int animation_ongoing;
 static double scaling_factor = 1;
 static double rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+
+static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {1, 0.80, 0.60, 0.40, 0.20};
 
 int main(int argc, char** argv)
 {
@@ -116,16 +122,10 @@ static void on_display(void)
     glRotatef(rotation_step * rotation_direction, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
 
-    drawHexagon(0);
-    drawHexagon(1.1);
-    drawHexagon(0.9);
-    drawHexagon(0.8);
-    drawHexagon(0.7);
-
-    
+    drawAllHexagons();
 
     rotation_step += HEXAGON_ROTATION_STEP;
-    scaling_factor *= HEXAGON_SCALING_FACTOR;
+    updateScalingFactors();
 
     printf("rotation_direction: %lf\n", rotation_direction);
 
@@ -151,3 +151,14 @@ static void drawHexagon(double scale_factor)
     glPopMatrix();
 }
 
+static void updateScalingFactors() {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        hexagon_scaling_factors[i] *= HEXAGON_SCALING_FACTOR;
+    }
+}
+
+static void drawAllHexagons() {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        drawHexagon(hexagon_scaling_factors[i]);
+    }
+}
