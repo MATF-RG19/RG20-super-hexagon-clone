@@ -2,9 +2,12 @@
 #include <GLUT/glut.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-#define WINDOW_WIDTH (600)
-#define WINDOW_HEIGHT (600)
+#define WINDOW_WIDTH (1000)
+#define WINDOW_HEIGHT (1000)
+#define WINDOW_POS_X (1080 / 2)
+#define WINDOW_POS_Y (1920 / 2)
 
 #define TIMER_ID (0)
 #define TIMER_INTERVAL (17) // ~60 rotations per second
@@ -21,11 +24,11 @@
 #define HEXAGON_ROTATION_STEP (5)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
-#define HEXAGON_STARTING_SCALE_FACTOR (1.6)
+#define HEXAGON_STARTING_SCALE_FACTOR (2)
 
-#define EPSILON (0.18)
+#define EPSILON (0.3)
 
-#define NUMBER_OF_HEXAGONS (8)
+#define NUMBER_OF_HEXAGONS (4)
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
@@ -34,6 +37,9 @@ static void on_timer(int value);
 static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
+static double get_scaling_factor_update();
+static void update_scaling();
+
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -42,7 +48,8 @@ static double scaling_factor = 1;
 static double rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
-static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {1.6, 1.4, 1.2, 1, 0.80, 0.60, 0.40, 0.20};
+static double current_scaling_factor = HEXAGON_SCALING_FACTOR;
+static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
 
 int main(int argc, char** argv)
 {
@@ -50,7 +57,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    glutInitWindowPosition(100, 100);
+    glutInitWindowPosition(WINDOW_POS_X, WINDOW_POS_Y);
     glutCreateWindow(argv[0]);
 
     glutKeyboardFunc(on_keyboard);
@@ -76,7 +83,7 @@ static void on_keyboard(unsigned char key, int x, int y)
     case KEY_LEFT:
         printf("go left\n");
 
-        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -85,7 +92,7 @@ static void on_keyboard(unsigned char key, int x, int y)
     
     case KEY_RIGHT:
         printf("go right\n");
-        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -143,6 +150,7 @@ static void on_display(void)
 
     rotation_step += HEXAGON_ROTATION_STEP;
     updateScalingFactors();
+    
 
     printf("rotation_direction: %lf\n", rotation_direction);
 
@@ -186,4 +194,27 @@ static void drawAllHexagons()
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         drawHexagon(i);
     }
+}
+static double get_scaling_factor_update()
+{   
+    double scaling_factor = fabs(hexagon_scaling_factors[0] - hexagon_scaling_factors[1]);
+    printf("Scaling factor: %lf\n", scaling_factor);
+    return scaling_factor;
+}
+
+static void update_scaling() 
+{   
+    // FIXME
+    double scale_x = current_scaling_factor;
+    printf("Scaling factor for x: %lf\n", scale_x);
+    for(int i = 0; i < NUMBER_OF_HEXAGONS-1; i++) {
+        double scale_y = 
+            (hexagon_scaling_factors[i] * scale_x - 
+            (hexagon_scaling_factors[i] - hexagon_scaling_factors[i+1])
+            ) / hexagon_scaling_factors[i+1];
+        hexagon_scaling_factors[i] *= scale_x;
+        scale_x = scale_y;
+    }
+    current_scaling_factor *= HEXAGON_SCALING_FACTOR;
+
 }
