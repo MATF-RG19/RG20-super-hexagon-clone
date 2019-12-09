@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #define TIMER_ID (0)
 #define TIMER_INTERVAL (17) // ~60 rotations per second
 
@@ -20,7 +19,7 @@
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 
-#define NUMBER_OF_HEXAGONS (5)
+#define NUMBER_OF_HEXAGONS (8)
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
@@ -37,20 +36,20 @@ static double scaling_factor = 1;
 static double rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
-static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {1, 0.80, 0.60, 0.40, 0.20};
+static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {1.6, 1.4, 1.2, 1, 0.80, 0.60, 0.40, 0.20};
 
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    glutInitWindowSize(600, 600);
+    glutInitWindowSize(1000, 1000);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
     glutKeyboardFunc(on_keyboard);
-    glutReshapeFunc(on_reshape);
     glutDisplayFunc(on_display);
+    glutReshapeFunc(on_reshape);
 
     animation_ongoing = 0;
 
@@ -111,13 +110,25 @@ static void on_display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glColor3f(0, 0, 1);
+    glViewport(0, 0, window_width, window_height);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        60, 
+        window_width / (float)window_height,
+        1, 
+        5
+    );
+    
     glLoadIdentity();
     gluLookAt (
         0.1, 0.2, -0.3, 
         0.0, 0.0, 0.0, 
         0.0, 2.0, 0.0
     );
+
+    glColor3f(0, 0, 1);
 
     glRotatef(rotation_step * rotation_direction, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
