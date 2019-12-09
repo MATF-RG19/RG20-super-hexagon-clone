@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define WINDOW_WIDTH (600)
+#define WINDOW_HEIGHT (600)
+
 #define TIMER_ID (0)
 #define TIMER_INTERVAL (17) // ~60 rotations per second
 
@@ -18,6 +21,9 @@
 #define HEXAGON_ROTATION_STEP (5)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
+#define HEXAGON_STARTING_SCALE_FACTOR (1.6)
+
+#define EPSILON (0.18)
 
 #define NUMBER_OF_HEXAGONS (8)
 
@@ -43,7 +49,7 @@ int main(int argc, char** argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    glutInitWindowSize(1000, 1000);
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
@@ -143,13 +149,14 @@ static void on_display(void)
     glutSwapBuffers();
 }
 
-static void drawHexagon(double scale_factor)
+static void drawHexagon(int hexagon_idx)
 {
-    printf("drawing with scale factor: %lf\n", scale_factor);
+    printf("drawing hexagon with idx: %d\n", hexagon_idx);
+    
+    double scale_factor = hexagon_scaling_factors[hexagon_idx];
+
     glPushMatrix();
-        if (scale_factor != 0) {
-            glScalef(scale_factor, scale_factor, scale_factor);
-        }
+        glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINE_LOOP);
             glVertex3f(HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,   0);
             glVertex3f(HEXAGON_X,       HEXAGON_Y,        0);
@@ -162,14 +169,21 @@ static void drawHexagon(double scale_factor)
     glPopMatrix();
 }
 
-static void updateScalingFactors() {
+static void updateScalingFactors() 
+{
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        hexagon_scaling_factors[i] *= HEXAGON_SCALING_FACTOR;
+        if(hexagon_scaling_factors[i] < EPSILON) {
+            hexagon_scaling_factors[i] = HEXAGON_STARTING_SCALE_FACTOR;
+        }
+        else {
+            hexagon_scaling_factors[i] *= HEXAGON_SCALING_FACTOR;
+        }
     }
 }
 
-static void drawAllHexagons() {
+static void drawAllHexagons() 
+{
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        drawHexagon(hexagon_scaling_factors[i]);
+        drawHexagon(i);
     }
 }
