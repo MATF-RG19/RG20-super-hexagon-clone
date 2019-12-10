@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #define WINDOW_WIDTH (1000)
 #define WINDOW_HEIGHT (1000)
@@ -21,7 +22,7 @@
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Y_AXIS (1.0)
 #define HEXAGON_SCALING_FACTOR (0.995)
-#define HEXAGON_ROTATION_STEP (5)
+#define HEXAGON_ROTATION_STEP (2)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
@@ -37,9 +38,7 @@ static void on_timer(int value);
 static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
-static double get_scaling_factor_update();
-static void update_scaling();
-
+static double get_randomized_scaling_factor();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -48,11 +47,12 @@ static double scaling_factor = 1;
 static double rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
-static double current_scaling_factor = HEXAGON_SCALING_FACTOR;
-static double hexagon_scaling_factors[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
+static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
 
 int main(int argc, char** argv)
 {
+    srand(time(NULL));
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
@@ -152,16 +152,16 @@ static void on_display(void)
     updateScalingFactors();
     
 
-    printf("rotation_direction: %lf\n", rotation_direction);
+    // printf("rotation_direction: %lf\n", rotation_direction);
 
     glutSwapBuffers();
 }
 
 static void drawHexagon(int hexagon_idx)
 {
-    printf("drawing hexagon with idx: %d\n", hexagon_idx);
+    // printf("drawing hexagon with idx: %d\n", hexagon_idx);
     
-    double scale_factor = hexagon_scaling_factors[hexagon_idx];
+    double scale_factor = hexagon_edge_length[hexagon_idx];
 
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
@@ -180,11 +180,11 @@ static void drawHexagon(int hexagon_idx)
 static void updateScalingFactors() 
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        if(hexagon_scaling_factors[i] < EPSILON) {
-            hexagon_scaling_factors[i] = HEXAGON_STARTING_SCALE_FACTOR;
+        if(hexagon_edge_length[i] < EPSILON) {
+            hexagon_edge_length[i] = get_randomized_scaling_factor();//HEXAGON_STARTING_SCALE_FACTOR;
         }
         else {
-            hexagon_scaling_factors[i] *= HEXAGON_SCALING_FACTOR;
+            hexagon_edge_length[i] *= HEXAGON_SCALING_FACTOR;
         }
     }
 }
@@ -195,26 +195,16 @@ static void drawAllHexagons()
         drawHexagon(i);
     }
 }
-static double get_scaling_factor_update()
-{   
-    double scaling_factor = fabs(hexagon_scaling_factors[0] - hexagon_scaling_factors[1]);
-    printf("Scaling factor: %lf\n", scaling_factor);
-    return scaling_factor;
-}
 
-static void update_scaling() 
-{   
-    // FIXME
-    double scale_x = current_scaling_factor;
-    printf("Scaling factor for x: %lf\n", scale_x);
-    for(int i = 0; i < NUMBER_OF_HEXAGONS-1; i++) {
-        double scale_y = 
-            (hexagon_scaling_factors[i] * scale_x - 
-            (hexagon_scaling_factors[i] - hexagon_scaling_factors[i+1])
-            ) / hexagon_scaling_factors[i+1];
-        hexagon_scaling_factors[i] *= scale_x;
-        scale_x = scale_y;
-    }
-    current_scaling_factor *= HEXAGON_SCALING_FACTOR;
+static double get_randomized_scaling_factor()
+{
+    int lower = 20;
+    int upper = 35;
 
+    double scaling = (rand() % (upper - lower + 1)) + lower;
+    scaling /= 10;
+
+    printf("random scaling: %lf\n", scaling);
+
+    return scaling;
 }
