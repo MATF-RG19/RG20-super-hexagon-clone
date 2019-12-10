@@ -39,6 +39,8 @@ static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
 static double get_randomized_scaling_factor();
+static void draw_partial_hexagon();
+
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -48,6 +50,7 @@ static double rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
+static int already_has_removed_edge[NUMBER_OF_HEXAGONS] = {0, 0, 0, 0};
 
 int main(int argc, char** argv)
 {
@@ -159,29 +162,45 @@ static void on_display(void)
 
 static void drawHexagon(int hexagon_idx)
 {
-    // printf("drawing hexagon with idx: %d\n", hexagon_idx);
-    
     double scale_factor = hexagon_edge_length[hexagon_idx];
 
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINE_LOOP);
-            glVertex3f(HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,   0);
-            glVertex3f(HEXAGON_X,       HEXAGON_Y,        0);
-            glVertex3f(HEXAGON_X,      -HEXAGON_Y,        0);
-            glVertex3f(HEXAGON_X_AXIS, -HEXAGON_Y_AXIS,   0);
-            glVertex3f(-HEXAGON_X,     -HEXAGON_Y,        0);
-            glColor3f(1, 0, 0);
-            glVertex3f(-HEXAGON_X,      HEXAGON_Y,        0);
+            draw_partial_hexagon();
         glEnd();
     glPopMatrix();
+}
+
+static void draw_partial_hexagon()
+{
+    int idx_to_be_removed = rand() % 6;
+    printf("idx to be removed: %d\n", idx_to_be_removed);
+    int ver_num = 6;
+    GLfloat vertices[6][3] = {
+        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
+        {HEXAGON_X,       HEXAGON_Y,               0},
+        {HEXAGON_X,       -HEXAGON_Y,               0},
+        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
+        {-HEXAGON_X,      -HEXAGON_Y,               0},
+        {-HEXAGON_X,      HEXAGON_Y,                0},
+    };
+
+    for(int i = 0; i < ver_num; i++) {
+        glVertex3fv(vertices[i]);
+        // if(idx_to_be_removed != i && !already_has_removed_edge[i]) {
+        //     glVertex3fv(vertices[i]);
+        //     already_has_removed_edge[i] = 1;
+        // }
+    }
 }
 
 static void updateScalingFactors() 
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         if(hexagon_edge_length[i] < EPSILON) {
-            hexagon_edge_length[i] = get_randomized_scaling_factor();//HEXAGON_STARTING_SCALE_FACTOR;
+            hexagon_edge_length[i] = get_randomized_scaling_factor();
+            already_has_removed_edge[i] = 0;
         }
         else {
             hexagon_edge_length[i] *= HEXAGON_SCALING_FACTOR;
@@ -201,6 +220,7 @@ static double get_randomized_scaling_factor()
     int lower = 20;
     int upper = 35;
 
+    //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
     double scaling = (rand() % (upper - lower + 1)) + lower;
     scaling /= 10;
 
