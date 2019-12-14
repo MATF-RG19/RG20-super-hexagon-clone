@@ -28,6 +28,7 @@
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
 
 #define ILLEGAL_EDGE (-1)
+#define NO_DISTANCE (-1)
 
 #define EPSILON (0.3)
 
@@ -42,6 +43,7 @@ static void updateScalingFactors();
 static void drawAllHexagons();
 static double get_randomized_scaling_factor();
 static void draw_partial_hexagon();
+static void init_hexagons();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -51,10 +53,45 @@ static int rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
-static int current_removed_edge[NUMBER_OF_HEXAGONS] = {2, 3, 1, ILLEGAL_EDGE};
+// static int current_removed_edge[NUMBER_OF_HEXAGONS] = {2, 3, 1, ILLEGAL_EDGE};
+
+typedef GLfloat trojka[3];
+
+static trojka vertices[12] = {
+        // 0
+        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
+        {HEXAGON_X,       HEXAGON_Y,               0},
+        // 1
+        {HEXAGON_X,       HEXAGON_Y,               0},
+        {HEXAGON_X,       -HEXAGON_Y,               0},
+        // 2
+        {HEXAGON_X,       -HEXAGON_Y,               0},
+        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
+        // 3
+        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
+        {-HEXAGON_X,      -HEXAGON_Y,               0},
+        // 4
+        {-HEXAGON_X,      -HEXAGON_Y,               0},
+        {-HEXAGON_X,      HEXAGON_Y,                0},
+        // 5
+        {-HEXAGON_X,      HEXAGON_Y,                0},
+        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
+    };
+
+typedef struct {
+    trojka* vertices;
+    int index;
+    double distances[3]; 
+    int removed_edge_index;
+    double scaling_factor;
+} Hexagon;
+
+static Hexagon hexagons[NUMBER_OF_HEXAGONS];
 
 int main(int argc, char** argv)
 {
+    init_hexagons();
+    
     srand(time(NULL));
 
     glutInit(&argc, argv);
@@ -161,71 +198,33 @@ static void on_display(void)
 
 static void drawHexagon(int hexagon_idx)
 {
-    double scale_factor = hexagon_edge_length[hexagon_idx];
+    double scale_factor = hexagons[hexagon_idx].scaling_factor;
 
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINES);
-            draw_partial_hexagon();
+            draw_partial_hexagon(hexagon_idx);
         glEnd();
     glPopMatrix();
 }
 
-static void draw_partial_hexagon()
+static void draw_partial_hexagon(int hexagon_idx)
 {
-    int idx_to_be_removed = rand() % 6;
-    printf("idx to be removed: %d\n", idx_to_be_removed);
     int ver_num = 12;
-    GLfloat vertices[12][3] = {
-        // 0
-        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
-        {HEXAGON_X,       HEXAGON_Y,               0},
-
-        // 1
-        {HEXAGON_X,       HEXAGON_Y,               0},
-        {HEXAGON_X,       -HEXAGON_Y,               0},
-        
-        // 2
-        {HEXAGON_X,       -HEXAGON_Y,               0},
-        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
-        
-        // 3
-        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
-        {-HEXAGON_X,      -HEXAGON_Y,               0},
-        
-        // 4
-        {-HEXAGON_X,      -HEXAGON_Y,               0},
-        {-HEXAGON_X,      HEXAGON_Y,                0},
-
-        // 5
-        {-HEXAGON_X,      HEXAGON_Y,                0},
-        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
-    };
 
     for(int i = 0; i < ver_num; i++) {
-
-        // FIXME DOESNT WORK, IT NEEDS TO SAVE THE REMOVED EDGE AND TO REMOVE IT AGAIN IN THE NEXT ITERATION
-        if(i % 2 == 0 && current_removed_edge[i/2] == ILLEGAL_EDGE) {
-            current_removed_edge[i/2] = idx_to_be_removed;
-        }
+        glVertex3fv(hexagons[hexagon_idx].vertices[i]);
     }
-    for(int i = 0; i < ver_num; i++) {
-        // if(current_removed_edge[i/2] != i) {
-            glVertex3fv(vertices[i]);
-        // }
-    }
-
 }
 
 static void updateScalingFactors() 
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        if(hexagon_edge_length[i] < EPSILON) {
-            hexagon_edge_length[i] = get_randomized_scaling_factor();
-            //current_removed_edge[i] = 0;
+        if(hexagons[i].scaling_factor < EPSILON) {
+            hexagons[i].scaling_factor = get_randomized_scaling_factor();
         }
         else {
-            hexagon_edge_length[i] *= HEXAGON_SCALING_FACTOR;
+            hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
         }
     }
 }
@@ -249,4 +248,19 @@ static double get_randomized_scaling_factor()
     printf("random scaling: %lf\n", scaling);
 
     return scaling;
+}
+
+static void init_hexagons()
+{
+    for(int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        hexagons[i].vertices = vertices;
+        hexagons[i].index = i;
+        
+        for(int j = 0; j < NUMBER_OF_HEXAGONS-1; j++) {
+            hexagons[i].distances[j] = NO_DISTANCE;
+        }
+        
+        hexagons[i].removed_edge_index = rand() % 6;
+        hexagons[i].scaling_factor = hexagon_edge_length[i];
+    } 
 }
