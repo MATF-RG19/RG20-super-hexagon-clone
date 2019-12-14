@@ -43,12 +43,11 @@ static void drawAllHexagons();
 static double get_randomized_scaling_factor();
 static void draw_partial_hexagon();
 
-
 static int window_width, window_height;
 static int animation_ongoing;
 
 static double scaling_factor = 1;
-static double rotation_step = 0;
+static int rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
@@ -154,6 +153,7 @@ static void on_display(void)
     drawAllHexagons();
 
     rotation_step += HEXAGON_ROTATION_STEP;
+    rotation_step = rotation_step % 360;
     updateScalingFactors();
     
     glutSwapBuffers();
@@ -210,9 +210,9 @@ static void draw_partial_hexagon()
         }
     }
     for(int i = 0; i < ver_num; i++) {
-        if(current_removed_edge[i/2] != i) {
+        // if(current_removed_edge[i/2] != i) {
             glVertex3fv(vertices[i]);
-        }
+        // }
     }
 
 }
