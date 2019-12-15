@@ -22,7 +22,7 @@
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Y_AXIS (1.0)
 #define HEXAGON_SCALING_FACTOR (0.995)
-#define HEXAGON_ROTATION_STEP (2)
+#define HEXAGON_ROTATION_STEP (1)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
@@ -33,7 +33,7 @@
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
 
-#define EPSILON (0.3)
+#define EPSILON (0.095)
 
 #define NUMBER_OF_HEXAGONS (4)
 
@@ -89,8 +89,8 @@ static point vertices[12] = {
         {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
     };
 static point agent_pos[3] = {
-    {0.1,  0, 0},
-    {-0.1, 0, 0},
+    {0.025,  0, 0},
+    {-0.025, 0, 0},
     {0,  0.1, 0},
 };
 
@@ -147,7 +147,7 @@ static void on_keyboard(unsigned char key, int x, int y)
     case KEY_LEFT:
         printf("go left\n");
 
-        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -156,7 +156,7 @@ static void on_keyboard(unsigned char key, int x, int y)
     
     case KEY_RIGHT:
         printf("go right\n");
-        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -212,7 +212,7 @@ static void on_display(void)
     glScalef(scaling_factor, scaling_factor, scaling_factor);
     drawAllHexagons();
     glPopMatrix();
-    
+
     drawAgent();
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
@@ -305,7 +305,6 @@ static double getRandomizedScalingFactor()
 }
 
 static void drawAgent() {
-    //TODO agent shouldn't rotate
     glPushMatrix();
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
