@@ -39,7 +39,7 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
-static void drawHexagon();
+static void draw_hexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
 static double get_randomized_scaling_factor();
@@ -199,7 +199,7 @@ static void on_display(void)
     glutSwapBuffers();
 }
 
-static void drawHexagon(int hexagon_idx)
+static void draw_hexagon(int hexagon_idx)
 {
     double scale_factor = hexagons[hexagon_idx].scaling_factor;
 
@@ -220,8 +220,14 @@ static void draw_partial_hexagon(int hexagon_idx)
     //? with even index 
     int no_draw_1 = rand() % 12;
     if (no_draw_1 % 2 != 0) {
-        no_draw_1++;
+        if(no_draw_1 != 11) {
+            no_draw_1++;
+        }
+        else {
+            no_draw_1 = 10;
+        }
     }
+
     int no_draw_2 = no_draw_1 + 1;
 
 
@@ -244,6 +250,11 @@ static void updateScalingFactors()
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         if(hexagons[i].scaling_factor < EPSILON) {
             hexagons[i].scaling_factor = get_randomized_scaling_factor();
+            
+            //? reset removed edges, so every time hexagon is rescaled new 
+            //? random point is choosen
+            hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
+            hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
         }
         else {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
@@ -254,7 +265,7 @@ static void updateScalingFactors()
 static void drawAllHexagons() 
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        drawHexagon(i);
+        draw_hexagon(i);
     }
 }
 
