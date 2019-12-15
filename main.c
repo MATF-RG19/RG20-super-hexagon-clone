@@ -207,10 +207,12 @@ static void on_display(void)
 
     glColor3f(0, 0, 1);
 
+    glPushMatrix();
     glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
-
     drawAllHexagons();
+    glPopMatrix();
+    
     drawAgent();
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
