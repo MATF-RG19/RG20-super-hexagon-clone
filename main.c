@@ -29,6 +29,7 @@
 
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
+#define ILLEGAL_VALUE (-1)
 
 #define EPSILON (0.3)
 
@@ -52,12 +53,13 @@ static double scaling_factor = 1;
 static int rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
+
 static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
 // static int current_removed_edge[NUMBER_OF_HEXAGONS] = {2, 3, 1, ILLEGAL_EDGE};
 
-typedef GLfloat trojka[3];
+typedef GLfloat point[3];
 
-static trojka vertices[12] = {
+static point vertices[12] = {
         // 0
         {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
         {HEXAGON_X,       HEXAGON_Y,               0},
@@ -79,10 +81,11 @@ static trojka vertices[12] = {
     };
 
 typedef struct {
-    trojka* vertices;
+    point* vertices;
     int index;
     double distances[3]; 
-    int removed_edge_index;
+    int removed_edge_index_1;
+    int removed_edge_index_2;
     double scaling_factor;
 } Hexagon;
 
@@ -184,12 +187,12 @@ static void on_display(void)
 
     glColor3f(0, 0, 1);
 
-    glRotatef(rotation_step * rotation_direction, 0, 0, 1);
+    glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
 
     drawAllHexagons();
 
-    rotation_step += HEXAGON_ROTATION_STEP;
+    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
     updateScalingFactors();
     
@@ -210,10 +213,29 @@ static void drawHexagon(int hexagon_idx)
 
 static void draw_partial_hexagon(int hexagon_idx)
 {
+    printf("hexagon_idx: %d\n", hexagon_idx);
     int ver_num = 12;
 
+    //? make sure to choose even number to be first, since every point starts
+    //? with even index 
+    int no_draw_1 = rand() % 12;
+    if (no_draw_1 % 2 != 0) {
+        no_draw_1++;
+    }
+    int no_draw_2 = no_draw_1 + 1;
+
+
+    if(hexagons[hexagon_idx].removed_edge_index_1 == ILLEGAL_VALUE) {
+        hexagons[hexagon_idx].removed_edge_index_1 = no_draw_1;
+        hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
+    }
+    printf("removed_edge_1: %d\nremoved_edge_2: %d\n\n", hexagons[hexagon_idx].removed_edge_index_1, hexagons[hexagon_idx].removed_edge_index_2);
+
+
     for(int i = 0; i < ver_num; i++) {
-        glVertex3fv(hexagons[hexagon_idx].vertices[i]);
+        if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
+            glVertex3fv(hexagons[hexagon_idx].vertices[i]);
+        }
     }
 }
 
@@ -260,7 +282,8 @@ static void init_hexagons()
             hexagons[i].distances[j] = NO_DISTANCE;
         }
         
-        hexagons[i].removed_edge_index = rand() % 6;
+        hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
+        hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
         hexagons[i].scaling_factor = hexagon_edge_length[i];
     } 
 }
