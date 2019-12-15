@@ -39,12 +39,12 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
-static void draw_hexagon();
+static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
-static double get_randomized_scaling_factor();
-static void draw_partial_hexagon();
-static void init_hexagons();
+static double getRandomizedScalingFactor();
+static void drawPartialHexagon();
+static void initHexagons();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -93,7 +93,7 @@ static Hexagon hexagons[NUMBER_OF_HEXAGONS];
 
 int main(int argc, char** argv)
 {
-    init_hexagons();
+    initHexagons();
     
     srand(time(NULL));
 
@@ -199,19 +199,19 @@ static void on_display(void)
     glutSwapBuffers();
 }
 
-static void draw_hexagon(int hexagon_idx)
+static void drawHexagon(int hexagon_idx)
 {
     double scale_factor = hexagons[hexagon_idx].scaling_factor;
 
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINES);
-            draw_partial_hexagon(hexagon_idx);
+            drawPartialHexagon(hexagon_idx);
         glEnd();
     glPopMatrix();
 }
 
-static void draw_partial_hexagon(int hexagon_idx)
+static void drawPartialHexagon(int hexagon_idx)
 {
     printf("hexagon_idx: %d\n", hexagon_idx);
     int ver_num = 12;
@@ -247,7 +247,7 @@ static void updateScalingFactors()
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         if(hexagons[i].scaling_factor < EPSILON) {
-            hexagons[i].scaling_factor = get_randomized_scaling_factor();
+            hexagons[i].scaling_factor = getRandomizedScalingFactor();
             
             //? reset removed edges, so every time hexagon is rescaled new 
             //? random point is choosen
@@ -263,11 +263,11 @@ static void updateScalingFactors()
 static void drawAllHexagons() 
 {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        draw_hexagon(i);
+        drawHexagon(i);
     }
 }
 
-static double get_randomized_scaling_factor()
+static double getRandomizedScalingFactor()
 {
     int lower = 20;
     int upper = 35;
@@ -281,7 +281,7 @@ static double get_randomized_scaling_factor()
     return scaling;
 }
 
-static void init_hexagons()
+static void initHexagons()
 {
     for(int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         hexagons[i].vertices = vertices;
