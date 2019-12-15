@@ -230,13 +230,11 @@ static void draw_partial_hexagon(int hexagon_idx)
 
     int no_draw_2 = no_draw_1 + 1;
 
-
     if(hexagons[hexagon_idx].removed_edge_index_1 == ILLEGAL_VALUE) {
         hexagons[hexagon_idx].removed_edge_index_1 = no_draw_1;
         hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
     }
     printf("removed_edge_1: %d\nremoved_edge_2: %d\n\n", hexagons[hexagon_idx].removed_edge_index_1, hexagons[hexagon_idx].removed_edge_index_2);
-
 
     for(int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
