@@ -27,6 +27,8 @@
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
 
+#define AGENT
+
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
@@ -39,12 +41,20 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
+
+static void initHexagons();
+static void initAgent();
+
 static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
 static double getRandomizedScalingFactor();
 static void drawPartialHexagon();
-static void initHexagons();
+static void drawAllHexagons();
+
+static void drawAgent();
+
+
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -54,8 +64,7 @@ static int rotation_step = 0;
 static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 
-static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50};
-// static int current_removed_edge[NUMBER_OF_HEXAGONS] = {2, 3, 1, ILLEGAL_EDGE};
+static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
 
 typedef GLfloat point[3];
 
@@ -79,6 +88,11 @@ static point vertices[12] = {
         {-HEXAGON_X,      HEXAGON_Y,                0},
         {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
     };
+static point agent_pos[3] = {
+    {0.1,  0, 0},
+    {-0.1, 0, 0},
+    {0,  0.1, 0},
+};
 
 typedef struct {
     point* vertices;
@@ -89,11 +103,17 @@ typedef struct {
     double scaling_factor;
 } Hexagon;
 
+typedef struct {
+    point* agent_pos;
+} Agent;
+
 static Hexagon hexagons[NUMBER_OF_HEXAGONS];
+static Agent agent;
 
 int main(int argc, char** argv)
 {
     initHexagons();
+    initAgent();
     
     srand(time(NULL));
 
@@ -191,6 +211,7 @@ static void on_display(void)
     glScalef(scaling_factor, scaling_factor, scaling_factor);
 
     drawAllHexagons();
+    drawAgent();
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
@@ -236,7 +257,7 @@ static void drawPartialHexagon(int hexagon_idx)
     }
     printf("removed_edge_1: %d\nremoved_edge_2: %d\n\n", hexagons[hexagon_idx].removed_edge_index_1, hexagons[hexagon_idx].removed_edge_index_2);
 
-    for(int i = 0; i < ver_num; i++) {
+    for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
             glVertex3fv(hexagons[hexagon_idx].vertices[i]);
         }
@@ -281,9 +302,21 @@ static double getRandomizedScalingFactor()
     return scaling;
 }
 
+static void drawAgent() {
+    //TODO agent shouldn't rotate
+    glPushMatrix();
+        glBegin(GL_TRIANGLES);
+            glColor3f(0, 1, 0);
+            for (int i = 0; i < 3; i++) {
+                glVertex3fv(agent.agent_pos[i]);
+            }
+        glEnd();
+    glPopMatrix();
+}
+
 static void initHexagons()
 {
-    for(int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         hexagons[i].vertices = vertices;
         hexagons[i].index = i;
         
@@ -295,4 +328,8 @@ static void initHexagons()
         hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
         hexagons[i].scaling_factor = hexagon_edge_length[i];
     } 
+}
+
+static void initAgent() {
+    agent.agent_pos = agent_pos;
 }
