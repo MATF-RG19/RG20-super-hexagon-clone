@@ -51,6 +51,7 @@ static void drawAllHexagons();
 static float getRandomizedScalingFactor();
 static void drawPartialHexagon();
 static void drawAllHexagons();
+static void rearrangeHexagons();
 
 static void drawAgent();
 
@@ -66,6 +67,7 @@ static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
+static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3}; // starting from the biggest hexagon
 
 typedef GLfloat point[3];
 
@@ -223,6 +225,7 @@ static void on_display(void)
     rotation_step = rotation_step % 360;
     updateScalingFactors();
     
+    
     glutSwapBuffers();
 }
 
@@ -280,6 +283,8 @@ static void updateScalingFactors()
             //? random point is choosen
             hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
             hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
+            
+            rearrangeHexagons();
         }
         else {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
@@ -333,6 +338,18 @@ static void initHexagons()
         hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
         hexagons[i].scaling_factor = hexagon_edge_length[i];
     } 
+}
+
+static void rearrangeHexagons() {
+    int tmp;
+    tmp = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
+    hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1] = hexagons_idx_by_size[0];
+    hexagons_idx_by_size[0] = tmp;
+
+    printf("Current order of hexagons: \n");
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        printf("hexagon idx: %d\n", hexagons_idx_by_size[i]);
+    }
 }
 
 static void initAgent() {
