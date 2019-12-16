@@ -54,7 +54,8 @@ static void drawAllHexagons();
 
 static void drawAgent();
 
-
+static void calcAllDistances();
+static void calculateDistance(int idx);
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -207,6 +208,8 @@ static void on_display(void)
 
     glColor3f(0, 0, 1);
 
+    calcAllDistances();
+
     glPushMatrix();
     glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
@@ -333,4 +336,22 @@ static void initHexagons()
 
 static void initAgent() {
     agent.agent_pos = agent_pos;
+}
+
+static void calcAllDistances() {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        calculateDistance(i);
+    }
+}
+
+static void calculateDistance(int idx) {
+    printf("Calculating distances for %d hexagon\n", idx);
+    
+    for (int i = idx+1; i < NUMBER_OF_HEXAGONS; i++) {
+        float idx_edge = hexagons[idx].vertices[0][1] * hexagons[idx].scaling_factor;
+        float i_edge = hexagons[i].vertices[0][1] * hexagons[i].scaling_factor;
+
+        float d = fabsf(idx_edge - i_edge);
+        printf("Distance between %d and %d is %f\n", idx, i, d);
+    }
 }
