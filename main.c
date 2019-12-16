@@ -48,7 +48,7 @@ static void initAgent();
 static void drawHexagon();
 static void updateScalingFactors();
 static void drawAllHexagons();
-static double getRandomizedScalingFactor();
+static float getRandomizedScalingFactor();
 static void drawPartialHexagon();
 static void drawAllHexagons();
 
@@ -60,21 +60,21 @@ static void calculateDistance(int idx);
 static int window_width, window_height;
 static int animation_ongoing;
 
-static double scaling_factor = 1;
+static float scaling_factor = 1;
 static int rotation_step = 0;
-static double rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 
 
-static double hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
+static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
 
 typedef GLfloat point[3];
 
 static point vertices[12] = {
         // 0
         {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
-        {HEXAGON_X,       HEXAGON_Y,               0},
+        {HEXAGON_X,       HEXAGON_Y,                0},
         // 1
-        {HEXAGON_X,       HEXAGON_Y,               0},
+        {HEXAGON_X,       HEXAGON_Y,                0},
         {HEXAGON_X,       -HEXAGON_Y,               0},
         // 2
         {HEXAGON_X,       -HEXAGON_Y,               0},
@@ -89,6 +89,7 @@ static point vertices[12] = {
         {-HEXAGON_X,      HEXAGON_Y,                0},
         {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
     };
+
 static point agent_pos[3] = {
     {0.025,  0, 0},
     {-0.025, 0, 0},
@@ -98,10 +99,10 @@ static point agent_pos[3] = {
 typedef struct {
     point* vertices;
     int index;
-    double distances[3]; 
+    float distances[3]; 
     int removed_edge_index_1;
     int removed_edge_index_2;
-    double scaling_factor;
+    float scaling_factor;
 } Hexagon;
 
 typedef struct {
@@ -227,7 +228,7 @@ static void on_display(void)
 
 static void drawHexagon(int hexagon_idx)
 {
-    double scale_factor = hexagons[hexagon_idx].scaling_factor;
+    float scale_factor = hexagons[hexagon_idx].scaling_factor;
 
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
@@ -293,13 +294,13 @@ static void drawAllHexagons()
     }
 }
 
-static double getRandomizedScalingFactor()
+static float getRandomizedScalingFactor()
 {
     int lower = 20;
     int upper = 35;
 
     //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
-    double scaling = (rand() % (upper - lower + 1)) + lower;
+    float scaling = (rand() % (upper - lower + 1)) + lower;
     scaling /= 10;
 
     printf("random scaling: %lf\n", scaling);
