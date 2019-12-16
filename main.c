@@ -348,11 +348,13 @@ static void calcAllDistances() {
 static void calculateDistance(int idx) {
     printf("Calculating distances for %d hexagon\n", idx);
     
-    for (int i = idx+1; i < NUMBER_OF_HEXAGONS; i++) {
-        float idx_edge = hexagons[idx].vertices[0][1] * hexagons[idx].scaling_factor;
-        float i_edge = hexagons[i].vertices[0][1] * hexagons[i].scaling_factor;
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        if (i != idx) {
+            float idx_edge = hexagons[idx].vertices[0][1] * hexagons[idx].scaling_factor;
+            float i_edge = hexagons[i].vertices[0][1] * hexagons[i].scaling_factor;
 
-        float d = fabsf(idx_edge - i_edge);
-        printf("Distance between %d and %d is %f\n", idx, i, d);
+            float d = fabsf(idx_edge - i_edge);
+            printf("Distance between %d and %d is %f\n", idx, i, d);
+        }
     }
 }
