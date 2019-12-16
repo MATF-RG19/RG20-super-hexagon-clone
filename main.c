@@ -52,6 +52,9 @@ static float getRandomizedScalingFactor();
 static void drawPartialHexagon();
 static void drawAllHexagons();
 static void rearrangeHexagons();
+static void checkForImpassableTerrain() 
+// TODO should check indexes 0 and 1 based on the rearrange array to see if the distance is less than X, 
+// TODO if that's the case remove the same edge from 0 as it was removed from the 1 
 
 static void drawAgent();
 
