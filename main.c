@@ -32,6 +32,7 @@
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
+#define MIN_DISTANCE (0.5)
 
 #define EPSILON (0.095)
 
@@ -58,8 +59,7 @@ static void checkForImpassableTerrain();
 
 static void drawAgent();
 
-static void calcAllDistances();
-static void calculateDistance(int idx);
+static float calculateDistance(int idx0, int idx1);
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -152,8 +152,6 @@ static void on_keyboard(unsigned char key, int x, int y)
         break;
 
     case KEY_LEFT:
-        printf("go left\n");
-
         rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -162,7 +160,6 @@ static void on_keyboard(unsigned char key, int x, int y)
         break;
     
     case KEY_RIGHT:
-        printf("go right\n");
         rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -214,8 +211,6 @@ static void on_display(void)
 
     glColor3f(0, 0, 1);
 
-    calcAllDistances();
-
     glPushMatrix();
     glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
@@ -227,7 +222,6 @@ static void on_display(void)
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
     updateScalingFactors();
-    
     
     glutSwapBuffers();
 }
@@ -246,7 +240,6 @@ static void drawHexagon(int hexagon_idx)
 
 static void drawPartialHexagon(int hexagon_idx)
 {
-    printf("hexagon_idx: %d\n", hexagon_idx);
     int ver_num = 12;
 
     //? make sure to choose even number to be first, since every point starts
@@ -267,7 +260,6 @@ static void drawPartialHexagon(int hexagon_idx)
         hexagons[hexagon_idx].removed_edge_index_1 = no_draw_1;
         hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
     }
-    printf("removed_edge_1: %d\nremoved_edge_2: %d\n\n", hexagons[hexagon_idx].removed_edge_index_1, hexagons[hexagon_idx].removed_edge_index_2);
 
     for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
@@ -288,6 +280,7 @@ static void updateScalingFactors()
             hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
             
             rearrangeHexagons();
+            checkForImpassableTerrain();
         }
         else {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
@@ -310,8 +303,6 @@ static float getRandomizedScalingFactor()
     //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
     float scaling = (rand() % (upper - lower + 1)) + lower;
     scaling /= 10;
-
-    printf("random scaling: %lf\n", scaling);
 
     return scaling;
 }
@@ -344,14 +335,36 @@ static void initHexagons()
 }
 
 static void rearrangeHexagons() {
-    int tmp;
-    tmp = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
-    hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1] = hexagons_idx_by_size[0];
-    hexagons_idx_by_size[0] = tmp;
+    // SHR
+    int tmp_arr[NUMBER_OF_HEXAGONS];
+
+    for (int i = 0; i < NUMBER_OF_HEXAGONS-1; i++) {
+        tmp_arr[i+1] = hexagons_idx_by_size[i];
+    }
+    tmp_arr[0] = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
+    
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        hexagons_idx_by_size[i] = tmp_arr[i];
+    }
 
     printf("Current order of hexagons: \n");
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        printf("hexagon idx: %d\n", hexagons_idx_by_size[i]);
+        printf("%d ", hexagons_idx_by_size[i]);
+    }
+    printf("\n");
+}
+
+static void checkForImpassableTerrain() {
+    int hex0_idx = hexagons_idx_by_size[0];
+    int hex1_idx = hexagons_idx_by_size[1];
+
+    printf("Checking %d and %d\n", hex0_idx, hex1_idx);
+
+    float distance = calculateDistance(hex0_idx, hex1_idx);
+
+    if (distance < MIN_DISTANCE) {
+        hexagons[hex0_idx].removed_edge_index_1 = hexagons[hex1_idx].removed_edge_index_1;
+        hexagons[hex0_idx].removed_edge_index_2 = hexagons[hex1_idx].removed_edge_index_2;
     }
 }
 
@@ -359,22 +372,12 @@ static void initAgent() {
     agent.agent_pos = agent_pos;
 }
 
-static void calcAllDistances() {
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        calculateDistance(i);
-    }
-}
+static float calculateDistance(int idx0, int idx1) {    
+    float idx0_edge = hexagons[idx0].vertices[0][1] * hexagons[idx0].scaling_factor;
+    float idx1_edge = hexagons[idx1].vertices[0][1] * hexagons[idx1].scaling_factor;
 
-static void calculateDistance(int idx) {
-    printf("Calculating distances for %d hexagon\n", idx);
-    
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        if (i != idx) {
-            float idx_edge = hexagons[idx].vertices[0][1] * hexagons[idx].scaling_factor;
-            float i_edge = hexagons[i].vertices[0][1] * hexagons[i].scaling_factor;
+    float d = fabsf(idx0_edge - idx1_edge);
+    printf("Distance between %d and %d is %f\n", idx0, idx1, d);
 
-            float d = fabsf(idx_edge - i_edge);
-            printf("Distance between %d and %d is %f\n", idx, i, d);
-        }
-    }
+    return d;
 }
