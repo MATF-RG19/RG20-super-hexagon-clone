@@ -5,7 +5,7 @@
 #include <math.h>
 #include <time.h>
 
-#define WINDOW_WIDTH (1000)
+#define WINDOW_WIDTH (1920)
 #define WINDOW_HEIGHT (1000)
 #define WINDOW_POS_X (1080 / 2)
 #define WINDOW_POS_Y (1920 / 2)
@@ -16,6 +16,7 @@
 #define KEY_ESCAPE (27)
 #define KEY_LEFT ('a')
 #define KEY_RIGHT ('d')
+#define KEY_STOP ('s')
 
 #define HEXAGON_X (0.87) // ~sqrt(3) / 2
 #define HEXAGON_Y (0.5)
@@ -167,7 +168,12 @@ static void on_keyboard(unsigned char key, int x, int y)
             animation_ongoing = 1;
         }
         break;
+    case KEY_STOP:
+        animation_ongoing = 0;
+        break;
     }
+ 
+
 }
 
 static void on_reshape(int width, int height)
