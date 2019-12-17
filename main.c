@@ -27,7 +27,9 @@
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
 
-#define AGENT
+
+#define LOWER_LIMIT (20)
+#define UPPER_LIMIT (35)
 
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
@@ -297,11 +299,8 @@ static void drawAllHexagons()
 
 static float getRandomizedScalingFactor()
 {
-    int lower = 20;
-    int upper = 35;
-
     //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
-    float scaling = (rand() % (upper - lower + 1)) + lower;
+    float scaling = (rand() % (UPPER_LIMIT - LOWER_LIMIT + 1)) + LOWER_LIMIT;
     scaling /= 10;
 
     return scaling;
