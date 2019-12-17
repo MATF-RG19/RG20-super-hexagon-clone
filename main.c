@@ -35,6 +35,7 @@
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
 #define MIN_DISTANCE (0.5)
+#define SAFE_DISTANCE (0.015)
 
 #define EPSILON (0.095)
 
@@ -56,12 +57,10 @@ static void drawPartialHexagon();
 static void drawAllHexagons();
 static void rearrangeHexagons();
 static void checkForImpassableTerrain(); 
-// TODO should check indexes 0 and 1 based on the rearrange array to see if the distance is less than X, 
-// TODO if that's the case remove the same edge from 0 as it was removed from the 1 
-
 static void drawAgent();
 
 static float calculateDistance(int idx0, int idx1);
+static void detectColission();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -224,6 +223,7 @@ static void on_display(void)
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
     updateScalingFactors();
+    detectColission();
     
     glutSwapBuffers();
 }
@@ -379,4 +379,24 @@ static float calculateDistance(int idx0, int idx1) {
     printf("Distance between %d and %d is %f\n", idx0, idx1, d);
 
     return d;
+}
+
+//TODO change to bool at some point
+static void detectColission() {
+    int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
+
+    //? Only check the tip of the agent, that is the third coordinate in the array.
+    float agent_y = agent.agent_pos[2][1];
+
+    //? We have normalized coord system so we can do this
+    float hexagon_y = hexagons[nearest_idx].scaling_factor;
+
+    int colission_detected = 0;
+
+    if (fabsf (agent_y - hexagon_y) <= SAFE_DISTANCE) {
+        printf("Colission detected\n");
+        colission_detected = 1;
+    }
+
+    // return colission_detected
 }
