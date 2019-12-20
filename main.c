@@ -24,11 +24,9 @@
 #define HEXAGON_Y_AXIS (1.0)
 #define HEXAGON_SCALING_FACTOR (0.995)
 #define HEXAGON_ROTATION_STEP (1)
-// TODO: deterimine if the edge is non-existent based on the hexagon rotation step, in order to have passable terrain we need to have angle between -10 and 10
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
-
 #define LOWER_LIMIT (20)
 #define UPPER_LIMIT (35)
 
@@ -114,7 +112,7 @@ typedef struct {
     float scaling_factor;
     int left_angle;
     int right_angle;
-    int removed_edge
+    int removed_edge;
 } Hexagon;
 
 typedef struct {
@@ -232,8 +230,6 @@ static void on_display(void)
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
-    printf("Current rotation step: %d\n", rotation_step);
-    
     updateScalingFactors();
     detectColission();
     
@@ -348,7 +344,7 @@ static void initHexagons()
 }
 
 static void rearrangeHexagons() {
-    // SHR
+    //? SHR
     int tmp_arr[NUMBER_OF_HEXAGONS];
 
     for (int i = 0; i < NUMBER_OF_HEXAGONS-1; i++) {
@@ -406,13 +402,21 @@ static void detectColission() {
     int right_angle = current_hexagon.removed_edge * 60;
     int left_angle = (current_hexagon.removed_edge + 1) * 60;
 
+    printf("Right angle: %d, left angle: %d\n", right_angle, left_angle);
+    printf("Right angle reversed : %d, left angle reversed: %d\n", right_angle - 360, left_angle-360);
+    printf("rotation_step: %d\n", rotation_step);
+
     int goes_through_removed_edge = 0;
-    if(
-        (right_angle <= rotation_step && rotation_step <= left_angle) || 
-        (left_angle - 360 <= rotation_step && rotation_step <= right_angle - 360) 
-    ){
+    if(right_angle <= rotation_step && rotation_step <= left_angle) {
+        // printf("Positive \n");
         goes_through_removed_edge = 1;
     }
+    if(right_angle - 360 <= rotation_step && rotation_step <= left_angle - 360) {
+        // printf("Negative \n");
+        goes_through_removed_edge = 1;
+    }
+
+    printf("Goes through removed edge: %d\n", goes_through_removed_edge);
 
 
     //? We have normalized coord system so we can do this
@@ -431,32 +435,25 @@ static void detectColission() {
 static void determineRemovedEdge() {
     //? Determines which edge is removed starting from (0, 1) going counterclockwise
 
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        printf("removed_edge_index: %d\n", hexagons[i].removed_edge_index_1);
-        switch (hexagons[i].removed_edge_index_1)
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {        
+    switch (hexagons[i].removed_edge_index_1)
         {
         case  0:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 0, i);
             hexagons[i].removed_edge = 0;
             break;
         case  2:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 1, i);
             hexagons[i].removed_edge = 1;
             break;
         case  4:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 2, i);
             hexagons[i].removed_edge = 2;
             break;
         case  6:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 3, i);
             hexagons[i].removed_edge = 3;
             break;
         case  8:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 4, i);
             hexagons[i].removed_edge = 4;
             break;
         case  10:
-            printf("Removed edge is %d, hexagon_idx: %d\n", 5, i);
             hexagons[i].removed_edge = 5;
             break;
         
