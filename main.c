@@ -63,6 +63,7 @@ static void drawAgent();
 
 static float calculateDistance(int idx0, int idx1);
 static void detectColission();
+static void determineRemovedEdge();
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -111,6 +112,9 @@ typedef struct {
     int removed_edge_index_1;
     int removed_edge_index_2;
     float scaling_factor;
+    int left_angle;
+    int right_angle;
+    int removed_edge
 } Hexagon;
 
 typedef struct {
@@ -173,8 +177,6 @@ static void on_keyboard(unsigned char key, int x, int y)
         animation_ongoing = 0;
         break;
     }
- 
-
 }
 
 static void on_reshape(int width, int height)
@@ -223,16 +225,26 @@ static void on_display(void)
     glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
     drawAllHexagons();
+    determineRemovedEdge();
     glPopMatrix();
 
     drawAgent();
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
+    printf("Current rotation step: %d\n", rotation_step);
+    
     updateScalingFactors();
     detectColission();
     
     glutSwapBuffers();
+}
+
+static void drawAllHexagons() 
+{
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        drawHexagon(i);
+    }
 }
 
 static void drawHexagon(int hexagon_idx)
@@ -253,25 +265,24 @@ static void drawPartialHexagon(int hexagon_idx)
 
     //? make sure to choose even number to be first, since every point starts
     //? with even index 
-    int no_draw_1 = rand() % 12;
-    if (no_draw_1 % 2 != 0) {
-        if(no_draw_1 != 11) {
-            no_draw_1++;
-        }
-        else {
-            no_draw_1 = 10;
-        }
-    }
-
+    int left_edges[6] = {0, 2, 4, 6, 8, 10};
+    int random_idx = rand() % 6;
+    
+    int no_draw_1 = left_edges[random_idx];
     int no_draw_2 = no_draw_1 + 1;
 
     if(hexagons[hexagon_idx].removed_edge_index_1 == ILLEGAL_VALUE) {
         hexagons[hexagon_idx].removed_edge_index_1 = no_draw_1;
         hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
     }
+    
 
     for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
+            glColor3f(0, 0, 1);
+            if (i == 0) {
+                glColor3f(1, 0, 0);
+            }
             glVertex3fv(hexagons[hexagon_idx].vertices[i]);
         }
     }
@@ -294,13 +305,6 @@ static void updateScalingFactors()
         else {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
         }
-    }
-}
-
-static void drawAllHexagons() 
-{
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        drawHexagon(i);
     }
 }
 
@@ -337,7 +341,10 @@ static void initHexagons()
         hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
         hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
         hexagons[i].scaling_factor = hexagon_edge_length[i];
-    } 
+        
+        hexagons[i].left_angle = ILLEGAL_VALUE;
+        hexagons[i].right_angle = ILLEGAL_VALUE;
+    }
 }
 
 static void rearrangeHexagons() {
@@ -391,19 +398,71 @@ static float calculateDistance(int idx0, int idx1) {
 //TODO change to bool at some point
 static void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
+    Hexagon current_hexagon = hexagons[nearest_idx];
 
     //? Only check the tip of the agent, that is the third coordinate in the array.
     float agent_y = agent.agent_pos[2][1];
+
+    int right_angle = current_hexagon.removed_edge * 60;
+    int left_angle = (current_hexagon.removed_edge + 1) * 60;
+
+    int goes_through_removed_edge = 0;
+    if(
+        (right_angle <= rotation_step && rotation_step <= left_angle) || 
+        (left_angle - 360 <= rotation_step && rotation_step <= right_angle - 360) 
+    ){
+        goes_through_removed_edge = 1;
+    }
+
 
     //? We have normalized coord system so we can do this
     float hexagon_y = hexagons[nearest_idx].scaling_factor;
 
     int colission_detected = 0;
 
-    if (fabsf (agent_y - hexagon_y) <= SAFE_DISTANCE) {
+    if (fabsf (agent_y - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
         printf("Colission detected\n");
         colission_detected = 1;
     }
 
     // return colission_detected
+}
+
+static void determineRemovedEdge() {
+    //? Determines which edge is removed starting from (0, 1) going counterclockwise
+
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        printf("removed_edge_index: %d\n", hexagons[i].removed_edge_index_1);
+        switch (hexagons[i].removed_edge_index_1)
+        {
+        case  0:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 0, i);
+            hexagons[i].removed_edge = 0;
+            break;
+        case  2:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 1, i);
+            hexagons[i].removed_edge = 1;
+            break;
+        case  4:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 2, i);
+            hexagons[i].removed_edge = 2;
+            break;
+        case  6:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 3, i);
+            hexagons[i].removed_edge = 3;
+            break;
+        case  8:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 4, i);
+            hexagons[i].removed_edge = 4;
+            break;
+        case  10:
+            printf("Removed edge is %d, hexagon_idx: %d\n", 5, i);
+            hexagons[i].removed_edge = 5;
+            break;
+        
+        default:
+            printf("No removed edges!\n");
+            break;
+        }
+    }
 }
