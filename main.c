@@ -48,27 +48,27 @@ static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 
-static void initHexagons();
-static void initAgent();
+void initHexagons();
+void initAgent();
 
-static void drawHexagon();
-static void updateScalingFactorsAndScore();
-static void drawAllHexagons();
-static float getRandomizedScalingFactor();
-static void drawPartialHexagon();
-static void drawAllHexagons();
-static void rearrangeHexagons();
+void drawHexagon();
+void updateScalingFactorsAndScore();
+void drawAllHexagons();
+float getRandomizedScalingFactor();
+void drawPartialHexagon();
+void drawAllHexagons();
+void rearrangeHexagons();
 
-static void checkForImpassableTerrain(); 
+void checkForImpassableTerrain(); 
 
-static void drawAgent();
+void drawAgent();
 
-static float calculateDistance(int idx0, int idx1);
-static void detectColission();
-static void determineRemovedEdge();
+float calculateDistance(int idx0, int idx1);
+void detectColission();
+void determineRemovedEdge();
 
-static void displayCurrentStats();
-static void printText(char* text_to_be_displayed, float vertical_offset);
+void displayCurrentStats();
+void printText(char* text_to_be_displayed, float vertical_offset);
 
 static int window_width, window_height;
 static int animation_ongoing;
@@ -132,8 +132,7 @@ typedef struct {
 static Hexagon hexagons[NUMBER_OF_HEXAGONS];
 static Agent agent;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     initHexagons();
     initAgent();
     
@@ -159,8 +158,7 @@ int main(int argc, char** argv)
     glutMainLoop();
 }
 
-static void on_keyboard(unsigned char key, int x, int y)
-{
+static void on_keyboard(unsigned char key, int x, int y) {
     switch (key) {
     case KEY_ESCAPE:
         exit(0);
@@ -187,14 +185,12 @@ static void on_keyboard(unsigned char key, int x, int y)
     }
 }
 
-static void on_reshape(int width, int height)
-{
+static void on_reshape(int width, int height) {
     window_height = height;
     window_width = width;
 }
 
-static void on_timer(int value)
-{
+static void on_timer(int value) {
     if (value != TIMER_ID)
         return;
 
@@ -205,8 +201,7 @@ static void on_timer(int value)
     }
 }
 
-static void on_display(void)
-{
+static void on_display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glViewport(0, 0, window_width, window_height);
@@ -248,15 +243,13 @@ static void on_display(void)
     glutSwapBuffers();
 }
 
-static void drawAllHexagons() 
-{
+void drawAllHexagons() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         drawHexagon(i);
     }
 }
 
-static void drawHexagon(int hexagon_idx)
-{
+void drawHexagon(int hexagon_idx) {
     float scale_factor = hexagons[hexagon_idx].scaling_factor;
 
     glPushMatrix();
@@ -267,8 +260,7 @@ static void drawHexagon(int hexagon_idx)
     glPopMatrix();
 }
 
-static void drawPartialHexagon(int hexagon_idx)
-{
+void drawPartialHexagon(int hexagon_idx) {
     int ver_num = 12;
 
     //? make sure to choose even number to be first, since every point starts
@@ -284,7 +276,6 @@ static void drawPartialHexagon(int hexagon_idx)
         hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
     }
     
-
     for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
             glColor3f(0, 0, 1);
@@ -296,8 +287,7 @@ static void drawPartialHexagon(int hexagon_idx)
     }
 }
 
-static void updateScalingFactorsAndScore() 
-{
+void updateScalingFactorsAndScore() {
     
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         if(hexagons[i].scaling_factor < EPSILON) {
@@ -321,8 +311,7 @@ static void updateScalingFactorsAndScore()
     }
 }
 
-static float getRandomizedScalingFactor()
-{
+float getRandomizedScalingFactor() {
     //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
     float scaling = (rand() % (UPPER_LIMIT - LOWER_LIMIT + 1)) + LOWER_LIMIT;
     scaling /= 10;
@@ -330,7 +319,7 @@ static float getRandomizedScalingFactor()
     return scaling;
 }
 
-static void drawAgent() {
+void drawAgent() {
     glPushMatrix();
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
@@ -341,8 +330,7 @@ static void drawAgent() {
     glPopMatrix();
 }
 
-static void initHexagons()
-{
+void initHexagons() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         hexagons[i].vertices = vertices;
         hexagons[i].index = i;
@@ -360,7 +348,7 @@ static void initHexagons()
     }
 }
 
-static void rearrangeHexagons() {
+void rearrangeHexagons() {
     //? SHR
     int tmp_arr[NUMBER_OF_HEXAGONS];
 
@@ -380,7 +368,7 @@ static void rearrangeHexagons() {
     printf("\n");
 }
 
-static void checkForImpassableTerrain() {
+void checkForImpassableTerrain() {
     int hex0_idx = hexagons_idx_by_size[0];
     int hex1_idx = hexagons_idx_by_size[1];
 
@@ -394,11 +382,11 @@ static void checkForImpassableTerrain() {
     }
 }
 
-static void initAgent() {
+void initAgent() {
     agent.agent_pos = agent_pos;
 }
 
-static float calculateDistance(int idx0, int idx1) {    
+float calculateDistance(int idx0, int idx1) {    
     float idx0_edge = hexagons[idx0].vertices[0][1] * hexagons[idx0].scaling_factor;
     float idx1_edge = hexagons[idx1].vertices[0][1] * hexagons[idx1].scaling_factor;
 
@@ -409,7 +397,7 @@ static float calculateDistance(int idx0, int idx1) {
 }
 
 //TODO change to bool at some point
-static void detectColission() {
+void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
     Hexagon current_hexagon = hexagons[nearest_idx];
 
@@ -425,16 +413,13 @@ static void detectColission() {
 
     int goes_through_removed_edge = 0;
     if(right_angle <= rotation_step && rotation_step <= left_angle) {
-        // printf("Positive \n");
         goes_through_removed_edge = 1;
     }
     if(right_angle - 360 <= rotation_step && rotation_step <= left_angle - 360) {
-        // printf("Negative \n");
         goes_through_removed_edge = 1;
     }
 
     printf("Goes through removed edge: %d\n", goes_through_removed_edge);
-
 
     //? We have normalized coord system so we can do this
     float hexagon_y = hexagons[nearest_idx].scaling_factor;
@@ -449,7 +434,7 @@ static void detectColission() {
     // return colission_detected
 }
 
-static void determineRemovedEdge() {
+void determineRemovedEdge() {
     //? Determines which edge is removed starting from (0, 1) going counterclockwise
 
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {        
@@ -480,7 +465,8 @@ static void determineRemovedEdge() {
         }
     }
 }
-static void displayCurrentStats() {
+
+void displayCurrentStats() {
     char display_current_score[64];
     char display_number_of_lives[64];
     
@@ -490,7 +476,8 @@ static void displayCurrentStats() {
     printText(display_current_score, 0);
     printText(display_number_of_lives, TEXT_VERTICAL_OFFSET);
 }
-static void printText(char* text_to_be_displayed, float vertical_offset) {
+
+void printText(char* text_to_be_displayed, float vertical_offset) {
     glPushMatrix();
         glColor3f(1, 1, 1);
         glRasterPos3f(TEXT_POS_X, TEXT_POS_Y - vertical_offset, 0);
