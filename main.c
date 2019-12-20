@@ -39,6 +39,10 @@
 
 #define NUMBER_OF_HEXAGONS (4)
 
+#define TEXT_POS_X (1.045)
+#define TEXT_POS_Y (1.3)
+#define TEXT_VERTICAL_OFFSET (0.075)
+
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
@@ -48,7 +52,7 @@ static void initHexagons();
 static void initAgent();
 
 static void drawHexagon();
-static void updateScalingFactors();
+static void updateScalingFactorsAndScore();
 static void drawAllHexagons();
 static float getRandomizedScalingFactor();
 static void drawPartialHexagon();
@@ -63,12 +67,18 @@ static float calculateDistance(int idx0, int idx1);
 static void detectColission();
 static void determineRemovedEdge();
 
+static void displayCurrentStats();
+static void printText(char* text_to_be_displayed, float vertical_offset);
+
 static int window_width, window_height;
 static int animation_ongoing;
 
 static float scaling_factor = 1;
 static int rotation_step = 0;
 static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+
+static int current_score = 0;
+static int number_of_lives = 3;
 
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
@@ -219,6 +229,8 @@ static void on_display(void)
 
     glColor3f(0, 0, 1);
 
+    displayCurrentStats();
+
     glPushMatrix();
     glRotatef(rotation_step, 0, 0, 1);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
@@ -230,7 +242,7 @@ static void on_display(void)
 
     rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
     rotation_step = rotation_step % 360;
-    updateScalingFactors();
+    updateScalingFactorsAndScore();
     detectColission();
     
     glutSwapBuffers();
@@ -284,10 +296,15 @@ static void drawPartialHexagon(int hexagon_idx)
     }
 }
 
-static void updateScalingFactors() 
+static void updateScalingFactorsAndScore() 
 {
+    
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         if(hexagons[i].scaling_factor < EPSILON) {
+
+            //? We are updating the score cuz this means we've passed 1 hexagon
+            current_score++;
+
             hexagons[i].scaling_factor = getRandomizedScalingFactor();
             
             //? reset removed edges, so every time hexagon is rescaled new 
@@ -462,4 +479,24 @@ static void determineRemovedEdge() {
             break;
         }
     }
+}
+static void displayCurrentStats() {
+    char display_current_score[64];
+    char display_number_of_lives[64];
+    
+    sprintf(display_current_score, "Current Score: %d", current_score);
+    sprintf(display_number_of_lives, "Number of lives: %d", number_of_lives);
+    
+    printText(display_current_score, 0);
+    printText(display_number_of_lives, TEXT_VERTICAL_OFFSET);
+}
+static void printText(char* text_to_be_displayed, float vertical_offset) {
+    glPushMatrix();
+        glColor3f(1, 1, 1);
+        glRasterPos3f(TEXT_POS_X, TEXT_POS_Y - vertical_offset, 0);
+        for(int i = 0; text_to_be_displayed[i] != '\0'; i++) {
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text_to_be_displayed[i]);
+        }
+    glPopMatrix();
+
 }
