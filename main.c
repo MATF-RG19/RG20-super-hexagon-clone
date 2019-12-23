@@ -5,8 +5,12 @@
 #include <math.h>
 #include <time.h>
 
-#define WINDOW_WIDTH (1920)
-#define WINDOW_HEIGHT (1000)
+//! #define WINDOW_WIDTH (1920)
+//! #define WINDOW_HEIGHT (1000)
+#define WINDOW_WIDTH (600)
+#define WINDOW_HEIGHT (600)
+
+
 #define WINDOW_POS_X (1080 / 2)
 #define WINDOW_POS_Y (1920 / 2)
 
@@ -47,6 +51,7 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
+void drawAxis(float len);
 
 void initHexagons();
 void initAgent();
@@ -88,23 +93,23 @@ typedef GLfloat point[3];
 
 static point vertices[12] = {
         // 0
-        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0},
-        {HEXAGON_X,       HEXAGON_Y,                0},
+        {HEXAGON_X_AXIS, 0,  HEXAGON_Y_AXIS           },
+        {HEXAGON_X,      0,  HEXAGON_Y                },
         // 1
-        {HEXAGON_X,       HEXAGON_Y,                0},
-        {HEXAGON_X,       -HEXAGON_Y,               0},
+        {HEXAGON_X,      0,  HEXAGON_Y                },
+        {HEXAGON_X,       0, -HEXAGON_Y               },
         // 2
-        {HEXAGON_X,       -HEXAGON_Y,               0},
-        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
+        {HEXAGON_X,       0, -HEXAGON_Y               },
+        {HEXAGON_X_AXIS,  0, -HEXAGON_Y_AXIS          },
         // 3
-        {HEXAGON_X_AXIS,  -HEXAGON_Y_AXIS,          0},
-        {-HEXAGON_X,      -HEXAGON_Y,               0},
+        {HEXAGON_X_AXIS,  0, -HEXAGON_Y_AXIS          },
+        {-HEXAGON_X,      0, -HEXAGON_Y               },
         // 4
-        {-HEXAGON_X,      -HEXAGON_Y,               0},
-        {-HEXAGON_X,      HEXAGON_Y,                0},
+        {-HEXAGON_X,      0, -HEXAGON_Y               },
+        {-HEXAGON_X,     0,  HEXAGON_Y                },
         // 5
-        {-HEXAGON_X,      HEXAGON_Y,                0},
-        {HEXAGON_X_AXIS,  HEXAGON_Y_AXIS,           0}
+        {-HEXAGON_X,     0,  HEXAGON_Y                },
+        {HEXAGON_X_AXIS, 0,  HEXAGON_Y_AXIS           }
     };
 
 static point agent_pos[3] = {
@@ -158,6 +163,26 @@ int main(int argc, char** argv) {
     glutMainLoop();
 }
 
+void drawAxis(float len) {
+    glDisable(GL_LIGHTING);
+
+    glBegin(GL_LINES);
+        glColor3f(1,0,0);
+        glVertex3f(0,0,0);
+        glVertex3f(len,0,0);
+
+        glColor3f(0,1,0);
+        glVertex3f(0,0,0);
+        glVertex3f(0,len,0);
+
+        glColor3f(0,0,1);
+        glVertex3f(0,0,0);
+        glVertex3f(0,0,len);
+    glEnd();
+
+    glEnable(GL_LIGHTING);
+}
+
 static void on_keyboard(unsigned char key, int x, int y) {
     switch (key) {
     case KEY_ESCAPE:
@@ -188,6 +213,17 @@ static void on_keyboard(unsigned char key, int x, int y) {
 static void on_reshape(int width, int height) {
     window_height = height;
     window_width = width;
+
+    glViewport(0, 0, width, height);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        45, 
+        (float) width / height,
+        1, 
+        5
+    );    
 }
 
 static void on_timer(int value) {
@@ -202,32 +238,24 @@ static void on_timer(int value) {
 }
 
 static void on_display(void) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glViewport(0, 0, window_width, window_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        60, 
-        window_width / (float)window_height,
-        1, 
-        5
-    );
-    
-    glLoadIdentity();
     gluLookAt (
-        0.1, 0.2, -0.3, 
-        0.0, 0.0, 0.0, 
-        0.0, 2.0, 0.0
+        0.5, 2, 1, 
+        0, 0, 0, 
+        0, 1, 0
     );
+
+    drawAxis(10);
 
     glColor3f(0, 0, 1);
 
-    displayCurrentStats();
+    //! displayCurrentStats();
 
     glPushMatrix();
-    glRotatef(rotation_step, 0, 0, 1);
+    glRotatef(rotation_step, 0, 1, 0);
     glScalef(scaling_factor, scaling_factor, scaling_factor);
     drawAllHexagons();
     determineRemovedEdge();
