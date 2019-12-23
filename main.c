@@ -115,7 +115,7 @@ static point vertices[12] = {
 static point agent_pos[3] = {
     {0.025,  0, 0},
     {-0.025, 0, 0},
-    {0,  0.1, 0},
+    {0,  0, 0.1},
 };
 
 typedef struct {
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
 }
 
 void drawAxis(float len) {
-    glDisable(GL_LIGHTING);
+    // glDisable(GL_LIGHTING);
 
     glBegin(GL_LINES);
         glColor3f(1,0,0);
@@ -180,7 +180,7 @@ void drawAxis(float len) {
         glVertex3f(0,0,len);
     glEnd();
 
-    glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHTING);
 }
 
 static void on_keyboard(unsigned char key, int x, int y) {
@@ -190,7 +190,7 @@ static void on_keyboard(unsigned char key, int x, int y) {
         break;
 
     case KEY_LEFT:
-        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -198,7 +198,7 @@ static void on_keyboard(unsigned char key, int x, int y) {
         break;
     
     case KEY_RIGHT:
-        rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
+        rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
@@ -243,7 +243,7 @@ static void on_display(void) {
     glLoadIdentity();
 
     gluLookAt (
-        0.5, 2, 1, 
+        0, 2, -1, 
         0, 0, 0, 
         0, 1, 0
     );
@@ -428,9 +428,11 @@ float calculateDistance(int idx0, int idx1) {
 void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
     Hexagon current_hexagon = hexagons[nearest_idx];
+    
+    printf("current_removed_edge: %d\n", current_hexagon.removed_edge);
 
     //? Only check the tip of the agent, that is the third coordinate in the array.
-    float agent_y = agent.agent_pos[2][1];
+    float agent_z = agent.agent_pos[2][2];
 
     int right_angle = current_hexagon.removed_edge * 60;
     int left_angle = (current_hexagon.removed_edge + 1) * 60;
@@ -454,7 +456,7 @@ void detectColission() {
 
     int colission_detected = 0;
 
-    if (fabsf (agent_y - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
+    if (fabsf (agent_z - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
         printf("Colission detected\n");
         colission_detected = 1;
     }
@@ -469,22 +471,22 @@ void determineRemovedEdge() {
     switch (hexagons[i].removed_edge_index_1)
         {
         case  0:
-            hexagons[i].removed_edge = 0;
+            hexagons[i].removed_edge = 5;
             break;
         case  2:
-            hexagons[i].removed_edge = 1;
-            break;
-        case  4:
-            hexagons[i].removed_edge = 2;
-            break;
-        case  6:
-            hexagons[i].removed_edge = 3;
-            break;
-        case  8:
             hexagons[i].removed_edge = 4;
             break;
+        case  4:
+            hexagons[i].removed_edge = 3;
+            break;
+        case  6:
+            hexagons[i].removed_edge = 2;
+            break;
+        case  8:
+            hexagons[i].removed_edge = 1;
+            break;
         case  10:
-            hexagons[i].removed_edge = 5;
+            hexagons[i].removed_edge = 0;
             break;
         
         default:
