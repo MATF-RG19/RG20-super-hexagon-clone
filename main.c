@@ -5,27 +5,25 @@
 #include <math.h>
 #include <time.h>
 
-//! #define WINDOW_WIDTH (1920)
-//! #define WINDOW_HEIGHT (1000)
-#define WINDOW_WIDTH (600)
-#define WINDOW_HEIGHT (600)
-
-
+#define WINDOW_WIDTH (1920)
+#define WINDOW_HEIGHT (1000)
 #define WINDOW_POS_X (1080 / 2)
 #define WINDOW_POS_Y (1920 / 2)
 
+#define CAMERA_FOV (45)
+
 #define TIMER_ID (0)
-#define TIMER_INTERVAL (17) // ~60 rotations per second
+#define TIMER_INTERVAL (17) //? ~60fps
 
 #define KEY_ESCAPE (27)
 #define KEY_LEFT ('a')
 #define KEY_RIGHT ('d')
 #define KEY_STOP ('s')
 
-#define HEXAGON_X (0.87) // ~sqrt(3) / 2
-#define HEXAGON_Y (0.5)
+#define HEXAGON_X (0.87) //? ~sqrt(3) / 2
+#define HEXAGON_Z (0.5)
 #define HEXAGON_X_AXIS (0.0)
-#define HEXAGON_Y_AXIS (1.0)
+#define HEXAGON_Z_AXIS (1.0)
 #define HEXAGON_SCALING_FACTOR (0.995)
 #define HEXAGON_ROTATION_STEP (1)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
@@ -43,8 +41,8 @@
 
 #define NUMBER_OF_HEXAGONS (4)
 
-#define TEXT_POS_X (1.045)
-#define TEXT_POS_Y (1.3)
+#define TEXT_POS_X (1.875)
+#define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
 static void on_keyboard(unsigned char key, int x, int y);
@@ -52,6 +50,7 @@ static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 void drawAxis(float len);
+void drawHelpBody();
 
 void initHexagons();
 void initAgent();
@@ -75,7 +74,6 @@ void determineRemovedEdge();
 void displayCurrentStats();
 void printText(char* text_to_be_displayed, float vertical_offset);
 
-static int window_width, window_height;
 static int animation_ongoing;
 
 static float scaling_factor = 1;
@@ -85,7 +83,6 @@ static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 static int current_score = 0;
 static int number_of_lives = 3;
 
-
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3}; // starting from the biggest hexagon
 
@@ -93,23 +90,23 @@ typedef GLfloat point[3];
 
 static point vertices[12] = {
         // 0
-        {HEXAGON_X_AXIS, 0,  HEXAGON_Y_AXIS           },
-        {HEXAGON_X,      0,  HEXAGON_Y                },
+        {HEXAGON_X_AXIS, 0,  HEXAGON_Z_AXIS           },
+        {HEXAGON_X,      0,  HEXAGON_Z                },
         // 1
-        {HEXAGON_X,      0,  HEXAGON_Y                },
-        {HEXAGON_X,       0, -HEXAGON_Y               },
+        {HEXAGON_X,      0,  HEXAGON_Z                },
+        {HEXAGON_X,       0, -HEXAGON_Z               },
         // 2
-        {HEXAGON_X,       0, -HEXAGON_Y               },
-        {HEXAGON_X_AXIS,  0, -HEXAGON_Y_AXIS          },
+        {HEXAGON_X,       0, -HEXAGON_Z               },
+        {HEXAGON_X_AXIS,  0, -HEXAGON_Z_AXIS          },
         // 3
-        {HEXAGON_X_AXIS,  0, -HEXAGON_Y_AXIS          },
-        {-HEXAGON_X,      0, -HEXAGON_Y               },
+        {HEXAGON_X_AXIS,  0, -HEXAGON_Z_AXIS          },
+        {-HEXAGON_X,      0, -HEXAGON_Z               },
         // 4
-        {-HEXAGON_X,      0, -HEXAGON_Y               },
-        {-HEXAGON_X,     0,  HEXAGON_Y                },
+        {-HEXAGON_X,      0, -HEXAGON_Z               },
+        {-HEXAGON_X,     0,  HEXAGON_Z                },
         // 5
-        {-HEXAGON_X,     0,  HEXAGON_Y                },
-        {HEXAGON_X_AXIS, 0,  HEXAGON_Y_AXIS           }
+        {-HEXAGON_X,     0,  HEXAGON_Z                },
+        {HEXAGON_X_AXIS, 0,  HEXAGON_Z_AXIS           }
     };
 
 static point agent_pos[3] = {
@@ -153,6 +150,31 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(on_keyboard);
     glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    float light_position[] = {0, 2, 0, 1};
+    float light_ambient[] = {.3f, .3f, .3f, 1};
+    float light_diffuse[] = {.7f, .7f, .7f, 1};
+    float light_specular[] = {.7f, .7f, .7f, 1};
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
+
+    GLfloat ambient[] = {0.3,0.3,0.3,0};
+    GLfloat diffuse[] = {0,0.7,0,0};
+    GLfloat specular[] = {0.6,0.6,0.6,0};
+    GLfloat shininess = 80;
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    glEnable(GL_COLOR_MATERIAL);
 
     animation_ongoing = 0;
 
@@ -163,8 +185,17 @@ int main(int argc, char** argv) {
     glutMainLoop();
 }
 
+void drawHelpBody() {
+    glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        glTranslatef(0, -2, 0);
+        glColor3f(0, 0.8, 0);
+        glutSolidCone(5, 0.001, 60, 60);
+    glPopMatrix();
+}
+
 void drawAxis(float len) {
-    // glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
 
     glBegin(GL_LINES);
         glColor3f(1,0,0);
@@ -180,7 +211,7 @@ void drawAxis(float len) {
         glVertex3f(0,0,len);
     glEnd();
 
-    // glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
 }
 
 static void on_keyboard(unsigned char key, int x, int y) {
@@ -211,15 +242,12 @@ static void on_keyboard(unsigned char key, int x, int y) {
 }
 
 static void on_reshape(int width, int height) {
-    window_height = height;
-    window_width = width;
-
     glViewport(0, 0, width, height);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(
-        45, 
+        CAMERA_FOV, 
         (float) width / height,
         1, 
         5
@@ -249,10 +277,11 @@ static void on_display(void) {
     );
 
     drawAxis(10);
-
+    // drawHelpBody();
+    
     glColor3f(0, 0, 1);
 
-    //! displayCurrentStats();
+    displayCurrentStats();
 
     glPushMatrix();
     glRotatef(rotation_step, 0, 1, 0);
@@ -349,6 +378,10 @@ float getRandomizedScalingFactor() {
 
 void drawAgent() {
     glPushMatrix();
+        // glRotatef(-90, 1, 0, 0);
+        // glRotatef(-90, 0, 1, 0);
+
+        // glutSolidCone(0.1, 0.1, 60, 60);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
             for (int i = 0; i < 3; i++) {
@@ -510,7 +543,7 @@ void displayCurrentStats() {
 void printText(char* text_to_be_displayed, float vertical_offset) {
     glPushMatrix();
         glColor3f(1, 1, 1);
-        glRasterPos3f(TEXT_POS_X, TEXT_POS_Y - vertical_offset, 0);
+        glRasterPos3f(TEXT_POS_X, 0, TEXT_POS_Z - vertical_offset);
         for(int i = 0; text_to_be_displayed[i] != '\0'; i++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text_to_be_displayed[i]);
         }
