@@ -25,13 +25,13 @@
 #define HEXAGON_Z (0.5)
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Z_AXIS (1.0)
-#define HEXAGON_SCALING_FACTOR (0.995)
+#define HEXAGON_SCALING_FACTOR (0.996)
 #define HEXAGON_ROTATION_STEP (1)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
-#define LOWER_LIMIT (20)
-#define UPPER_LIMIT (35)
+#define LOWER_LIMIT (55)
+#define UPPER_LIMIT (85)
 
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
@@ -40,7 +40,7 @@
 #define SAFE_DISTANCE (0.015)
 #define EPSILON (0.095)
 
-#define NUMBER_OF_HEXAGONS (4)
+#define NUMBER_OF_HEXAGONS (5)
 
 #define TEXT_POS_X (1.875)
 #define TEXT_POS_Z (1.225)
@@ -88,14 +88,15 @@ static int rotation_is_active = 1;
 static int current_score = 0;
 static int number_of_lives = 3;
 
-static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
-static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3}; // starting from the biggest hexagon
+static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}; 
+static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
 
-static GLfloat hexagon_colors[4][3] = {
-    {0.3, 0, 0},
-    {0.3, 0.6, 0},
-    {0.3, 0.6, 1},
-    {0, 0.3, 0.12}
+static GLfloat hexagon_colors[5][3] = {
+    {224.0/255.0, 1, 1},
+    {199.0/255.0, 206.0/255.0, 234.0/255.0},
+    {1, 218.0/255.0, 193.0/255.0},
+    {1, 154./255.0, 162.0/255.0},
+    {1, 1, 216.0/255.0}
 };  
 
 typedef GLfloat point[3];
@@ -166,7 +167,7 @@ int main(int argc, char** argv) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    float light_position[] = {0, 2, 0, 1};
+    float light_position[] = {0, 2, 1, 1};
     float light_ambient[] = {.3f, .3f, .3f, 1};
     float light_diffuse[] = {.7f, .7f, .7f, 1};
     float light_specular[] = {.7f, .7f, .7f, 1};
@@ -180,7 +181,7 @@ int main(int argc, char** argv) {
     GLfloat ambient[] = {0.3,0.3,0.3,0};
     GLfloat diffuse[] = {0,0.7,0,0};
     GLfloat specular[] = {0.6,0.6,0.6,0};
-    GLfloat shininess = 80;
+    GLfloat shininess = 40;
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
@@ -190,8 +191,7 @@ int main(int argc, char** argv) {
 
     animation_ongoing = 0;
 
-    glClearColor(0.75, 0.75, 0.75, 0.0);
-    // glEnable(GL_DEPTH_TEST);
+    glClearColor(181.0/255.0, 234.0/255.0, 215.0/255.0, 0.0);
     glLineWidth(2);
 
     glutMainLoop();
@@ -319,9 +319,6 @@ static void on_display(void) {
         0, 1, 0
     );
     drawAxis(10);
-    // drawHelpBody();
-    
-    displayCurrentStats();
 
     glPushMatrix();
         glRotatef(rotation_step, 0, 1, 0);
@@ -332,6 +329,7 @@ static void on_display(void) {
     glPopMatrix();
 
     drawAgent();
+    displayCurrentStats();
 
     
     updateRotationStep();
@@ -353,8 +351,8 @@ void drawHexagon(int hexagon_idx) {
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINES);
-            glColor3f(1, 0, 1);
-            glLineWidth(3);
+            glColor3f(0, 0, 0);
+            glLineWidth(10);
             drawPartialHexagon(hexagon_idx);
         glEnd();
     glPopMatrix();
@@ -422,10 +420,6 @@ float getRandomizedScalingFactor() {
 
 void drawAgent() {
     glPushMatrix();
-        // glRotatef(-90, 1, 0, 0);
-        // glRotatef(-90, 0, 1, 0);
-
-        // glutSolidCone(0.1, 0.1, 60, 60);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
             for (int i = 0; i < 3; i++) {
