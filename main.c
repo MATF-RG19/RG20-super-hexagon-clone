@@ -208,7 +208,7 @@ void drawHelpBody() {
 
 void drawSurface() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        drawSurfaceForSingleHexagon(i);
+        drawSurfaceForSingleHexagon(hexagons_idx_by_size[i]);
     }
 }
 
