@@ -53,17 +53,20 @@ static void on_timer(int value);
 void drawAxis(float len);
 void drawHelpBody();
 
+void drawSurface();
+void drawSurfaceForSingleHexagon(int idx);
+
 void initHexagons();
 void initAgent();
 
 void drawHexagon();
 void updateScalingFactorsAndScore();
+void updateRotationStep();
 void drawAllHexagons();
 float getRandomizedScalingFactor();
 void drawPartialHexagon();
 void drawAllHexagons();
 void rearrangeHexagons();
-
 void checkForImpassableTerrain(); 
 
 void drawAgent();
@@ -73,8 +76,6 @@ void detectColission();
 void determineRemovedEdge();
 
 void displayCurrentStats();
-void updateRotationStep();
-
 void printText(char* text_to_be_displayed, float vertical_offset);
 
 static int animation_ongoing;
@@ -89,6 +90,13 @@ static int number_of_lives = 3;
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {2.0, 1.5, 1.0, 0.50}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3}; // starting from the biggest hexagon
+
+static GLfloat hexagon_colors[4][3] = {
+    {0.3, 0, 0},
+    {0.3, 0.6, 0},
+    {0.3, 0.6, 1},
+    {0, 0.3, 0.12}
+};  
 
 typedef GLfloat point[3];
 
@@ -183,7 +191,7 @@ int main(int argc, char** argv) {
     animation_ongoing = 0;
 
     glClearColor(0.75, 0.75, 0.75, 0.0);
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
     glLineWidth(2);
 
     glutMainLoop();
@@ -198,24 +206,48 @@ void drawHelpBody() {
     glPopMatrix();
 }
 
+void drawSurface() {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        drawSurfaceForSingleHexagon(i);
+    }
+}
+
+void drawSurfaceForSingleHexagon(int idx) {
+    Hexagon hexagon = hexagons[idx];
+    GLfloat coord_center[] = {0, 0, 0};
+    GLfloat* color = hexagon_colors[idx];
+
+    glPushMatrix();        
+        glColor3fv(color); 
+        glScalef(hexagon.scaling_factor, hexagon.scaling_factor, hexagon.scaling_factor);
+        glBegin(GL_TRIANGLES);
+            for(int i = 0; i < 11; i++) {
+                glVertex3fv(coord_center);
+                glVertex3fv(hexagon.vertices[i]);
+                glVertex3fv(hexagon.vertices[i+1]);
+            }
+        glEnd();
+    glPopMatrix();
+}
+
 void drawAxis(float len) {
-    glDisable(GL_LIGHTING);
+    glPushMatrix();
+        glDisable(GL_LIGHTING);
+            glBegin(GL_LINES);
+                glColor3f(1,0,0);
+                glVertex3f(0,0,0);
+                glVertex3f(len,0,0);
 
-    glBegin(GL_LINES);
-        glColor3f(1,0,0);
-        glVertex3f(0,0,0);
-        glVertex3f(len,0,0);
+                glColor3f(0,1,0);
+                glVertex3f(0,0,0);
+                glVertex3f(0,len,0);
 
-        glColor3f(0,1,0);
-        glVertex3f(0,0,0);
-        glVertex3f(0,len,0);
-
-        glColor3f(0,0,1);
-        glVertex3f(0,0,0);
-        glVertex3f(0,0,len);
-    glEnd();
-
-    glEnable(GL_LIGHTING);
+                glColor3f(0,0,1);
+                glVertex3f(0,0,0);
+                glVertex3f(0,0,len);
+            glEnd();
+        glEnable(GL_LIGHTING);
+    glPopMatrix();
 }
 
 static void on_keyboard(unsigned char key, int x, int y) {
@@ -286,19 +318,17 @@ static void on_display(void) {
         0, 0, 0, 
         0, 1, 0
     );
-
     drawAxis(10);
     // drawHelpBody();
     
-    glColor3f(0, 0, 1);
-
     displayCurrentStats();
 
     glPushMatrix();
-    glRotatef(rotation_step, 0, 1, 0);
-    glScalef(scaling_factor, scaling_factor, scaling_factor);
-    drawAllHexagons();
-    determineRemovedEdge();
+        glRotatef(rotation_step, 0, 1, 0);
+        glScalef(scaling_factor, scaling_factor, scaling_factor);
+        drawSurface();
+        drawAllHexagons();
+        determineRemovedEdge();
     glPopMatrix();
 
     drawAgent();
@@ -323,6 +353,8 @@ void drawHexagon(int hexagon_idx) {
     glPushMatrix();
         glScalef(scale_factor, scale_factor, scale_factor); 
         glBegin(GL_LINES);
+            glColor3f(1, 0, 1);
+            glLineWidth(3);
             drawPartialHexagon(hexagon_idx);
         glEnd();
     glPopMatrix();
@@ -346,10 +378,6 @@ void drawPartialHexagon(int hexagon_idx) {
     
     for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
-            glColor3f(0, 0, 1);
-            if (i == 0) {
-                glColor3f(1, 0, 0);
-            }
             glVertex3fv(hexagons[hexagon_idx].vertices[i]);
         }
     }
@@ -377,6 +405,11 @@ void updateScalingFactorsAndScore() {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
         }
     }
+}
+
+void updateRotationStep() {
+    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction * rotation_is_active;
+    rotation_step = rotation_step % 360;
 }
 
 float getRandomizedScalingFactor() {
@@ -560,10 +593,5 @@ void printText(char* text_to_be_displayed, float vertical_offset) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text_to_be_displayed[i]);
         }
     glPopMatrix();
-
 }
 
-void updateRotationStep() {
-    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction * rotation_is_active;
-    rotation_step = rotation_step % 360;
-}
