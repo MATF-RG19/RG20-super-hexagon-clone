@@ -19,6 +19,7 @@
 #define KEY_LEFT ('a')
 #define KEY_RIGHT ('d')
 #define KEY_STOP ('s')
+#define KEY_PAUSE_ROTATION (' ')
 
 #define HEXAGON_X (0.87) //? ~sqrt(3) / 2
 #define HEXAGON_Z (0.5)
@@ -72,6 +73,8 @@ void detectColission();
 void determineRemovedEdge();
 
 void displayCurrentStats();
+void updateRotationStep();
+
 void printText(char* text_to_be_displayed, float vertical_offset);
 
 static int animation_ongoing;
@@ -79,6 +82,7 @@ static int animation_ongoing;
 static float scaling_factor = 1;
 static int rotation_step = 0;
 static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+static int rotation_is_active = 1;
 
 static int current_score = 0;
 static int number_of_lives = 3;
@@ -221,6 +225,7 @@ static void on_keyboard(unsigned char key, int x, int y) {
         break;
 
     case KEY_LEFT:
+        rotation_is_active = 1;
         rotation_direction = HEXAGON_NEGATIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -229,12 +234,18 @@ static void on_keyboard(unsigned char key, int x, int y) {
         break;
     
     case KEY_RIGHT:
+        rotation_is_active = 1;
         rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
         if(!animation_ongoing) {
             glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
             animation_ongoing = 1;
         }
         break;
+
+    case KEY_PAUSE_ROTATION:
+        rotation_is_active = !rotation_is_active;
+        break;
+
     case KEY_STOP:
         animation_ongoing = 0;
         break;
@@ -292,8 +303,8 @@ static void on_display(void) {
 
     drawAgent();
 
-    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction;
-    rotation_step = rotation_step % 360;
+    
+    updateRotationStep();
     updateScalingFactorsAndScore();
     detectColission();
     
@@ -550,4 +561,9 @@ void printText(char* text_to_be_displayed, float vertical_offset) {
         }
     glPopMatrix();
 
+}
+
+void updateRotationStep() {
+    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction * rotation_is_active;
+    rotation_step = rotation_step % 360;
 }
