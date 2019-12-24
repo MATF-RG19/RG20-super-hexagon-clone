@@ -436,6 +436,7 @@ void checkForImpassableTerrain() {
     printf("Checking %d and %d\n", hex0_idx, hex1_idx);
 
     float distance = calculateDistance(hex0_idx, hex1_idx);
+    printf("current distance: %f\n", distance);
 
     if (distance < MIN_DISTANCE) {
         hexagons[hex0_idx].removed_edge_index_1 = hexagons[hex1_idx].removed_edge_index_1;
@@ -448,8 +449,8 @@ void initAgent() {
 }
 
 float calculateDistance(int idx0, int idx1) {    
-    float idx0_edge = hexagons[idx0].vertices[0][1] * hexagons[idx0].scaling_factor;
-    float idx1_edge = hexagons[idx1].vertices[0][1] * hexagons[idx1].scaling_factor;
+    float idx0_edge = hexagons[idx0].vertices[0][2] * hexagons[idx0].scaling_factor;
+    float idx1_edge = hexagons[idx1].vertices[0][2] * hexagons[idx1].scaling_factor;
 
     float d = fabsf(idx0_edge - idx1_edge);
     printf("Distance between %d and %d is %f\n", idx0, idx1, d);
@@ -462,7 +463,7 @@ void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
     Hexagon current_hexagon = hexagons[nearest_idx];
     
-    printf("current_removed_edge: %d\n", current_hexagon.removed_edge);
+    // printf("current_removed_edge: %d\n", current_hexagon.removed_edge);
 
     //? Only check the tip of the agent, that is the third coordinate in the array.
     float agent_z = agent.agent_pos[2][2];
@@ -470,9 +471,9 @@ void detectColission() {
     int right_angle = current_hexagon.removed_edge * 60;
     int left_angle = (current_hexagon.removed_edge + 1) * 60;
 
-    printf("Right angle: %d, left angle: %d\n", right_angle, left_angle);
-    printf("Right angle reversed : %d, left angle reversed: %d\n", right_angle - 360, left_angle-360);
-    printf("rotation_step: %d\n", rotation_step);
+    // printf("Right angle: %d, left angle: %d\n", right_angle, left_angle);
+    // printf("Right angle reversed : %d, left angle reversed: %d\n", right_angle - 360, left_angle-360);
+    // printf("rotation_step: %d\n", rotation_step);
 
     int goes_through_removed_edge = 0;
     if(right_angle <= rotation_step && rotation_step <= left_angle) {
