@@ -499,10 +499,7 @@ void drawAgent() {
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
-            // for (int i = 0; i < 3; i++) {
-            //     // glTexCoord3fv(agent.agent_pos[i]);
-            //     glVertex3fv(agent.agent_pos[i]);
-            // }
+
             glTexCoord2f(0, 0);
             glVertex3fv(agent.agent_pos[0]);
 
@@ -682,7 +679,9 @@ void printText(char* text_to_be_displayed, float vertical_offset) {
 }
 
 void displayGameOver() {
-    printf("Game over!\n");
+    
+    float vertical_offset = 0.03;
+
     glPushMatrix();
         glBindTexture(GL_TEXTURE_2D, names[1]);
         glEnable(GL_TEXTURE_2D);
@@ -690,14 +689,13 @@ void displayGameOver() {
         glTranslatef(-0.2, 0, 0);
         glBegin(GL_POLYGON);
 
-            //upper_left
-            glTexCoord2f(0.03, 1);
+            glTexCoord2f(vertical_offset, 1);
             glVertex3f(-1, 0, 1);
 
-            glTexCoord2f(0.03, 0.03);
+            glTexCoord2f(vertical_offset, vertical_offset);
             glVertex3f(1, 0, 1);
 
-            glTexCoord2f(1, 0.03);
+            glTexCoord2f(1, vertical_offset);
             glVertex3f(1, 0, -1);
 
             glTexCoord2f(1, 1);
