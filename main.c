@@ -21,6 +21,7 @@
 #define KEY_RIGHT ('d')
 #define KEY_STOP ('s')
 #define KEY_PAUSE_ROTATION (' ')
+#define KEY_CHANGE_SHADE_MODEL ('m')
 
 #define HEXAGON_X (0.87) //? ~sqrt(3) / 2
 #define HEXAGON_Z (0.5)
@@ -47,7 +48,7 @@
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
-#define TEXTURE_AGENT "wall.bmp"
+#define TEXTURE_AGENT "yellow.bmp"
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
@@ -93,6 +94,8 @@ static int number_of_lives = 3;
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
+
+static int using_flat_model = 1;
 
 static GLuint names[1];
 
@@ -169,8 +172,9 @@ int main(int argc, char** argv) {
     glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
     
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    // glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHT0);
+    glShadeModel(GL_FLAT);
 
     float light_position[] = {0, 2, 1, 1};
     float light_ambient[] = {.3f, .3f, .3f, 1};
@@ -313,6 +317,17 @@ static void on_keyboard(unsigned char key, int x, int y) {
     case KEY_PAUSE_ROTATION:
         rotation_is_active = !rotation_is_active;
         break;
+    
+    case KEY_CHANGE_SHADE_MODEL:
+        if(!using_flat_model) {
+            glShadeModel(GL_FLAT);
+            using_flat_model = 1;
+        }
+        else {
+            glShadeModel(GL_SMOOTH);
+            using_flat_model = 0;
+        }
+        break;
 
     case KEY_STOP:
         animation_ongoing = 0;
@@ -357,11 +372,15 @@ static void on_display(void) {
     drawAxis(10);
 
     glPushMatrix();
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
         glRotatef(rotation_step, 0, 1, 0);
         glScalef(scaling_factor, scaling_factor, scaling_factor);
         drawSurface();
         drawAllHexagons();
         determineRemovedEdge();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
     glPopMatrix();
 
     drawAgent();
@@ -456,17 +475,31 @@ float getRandomizedScalingFactor() {
 
 void drawAgent() {
     glPushMatrix();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
+
         glBindTexture(GL_TEXTURE_2D, names[0]);
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
-            for (int i = 0; i < 3; i++) {
-                glTexCoord3fv(agent.agent_pos[i]);
-                glVertex3fv(agent.agent_pos[i]);
-            }
+            // for (int i = 0; i < 3; i++) {
+            //     // glTexCoord3fv(agent.agent_pos[i]);
+            //     glVertex3fv(agent.agent_pos[i]);
+            // }
+            glTexCoord2f(10, 10);
+            glVertex3fv(agent.agent_pos[0]);
+
+            glTexCoord2f(44, 10);
+            glVertex3fv(agent.agent_pos[1]);
+            
+            glTexCoord2f(10, 34);
+            glVertex3fv(agent.agent_pos[2]);
+
         glBindTexture(GL_TEXTURE_2D, 0);        
         glEnd();
         glDisable(GL_TEXTURE_2D);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_LIGHTING);
     glPopMatrix();
 }
 
