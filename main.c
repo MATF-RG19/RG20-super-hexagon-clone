@@ -96,6 +96,7 @@ static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
 
 static int using_flat_model = 1;
+static int already_detected_colission_for_current_hexagon = 0;
 
 static GLuint names[1];
 
@@ -453,6 +454,7 @@ void updateScalingFactorsAndScore() {
             
             rearrangeHexagons();
             checkForImpassableTerrain();
+            already_detected_colission_for_current_hexagon = 0;
         }
         else {
             hexagons[i].scaling_factor *= HEXAGON_SCALING_FACTOR;
@@ -605,8 +607,13 @@ void detectColission() {
     if (fabsf (agent_z - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
         // printf("Colission detected\n");
         colission_detected = 1;
+        
+        if(!already_detected_colission_for_current_hexagon) {
+            number_of_lives--;
+            already_detected_colission_for_current_hexagon = 1;
+        }
+        
     }
-
     // return colission_detected
 }
 
