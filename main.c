@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "image.h"
 
 #define WINDOW_WIDTH (1920)
 #define WINDOW_HEIGHT (1000)
@@ -521,7 +522,7 @@ void detectColission() {
         goes_through_removed_edge = 1;
     }
 
-    printf("Goes through removed edge: %d\n", goes_through_removed_edge);
+    // printf("Goes through removed edge: %d\n", goes_through_removed_edge);
 
     //? We have normalized coord system so we can do this
     float hexagon_y = hexagons[nearest_idx].scaling_factor;
@@ -529,7 +530,7 @@ void detectColission() {
     int colission_detected = 0;
 
     if (fabsf (agent_z - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
-        printf("Colission detected\n");
+        // printf("Colission detected\n");
         colission_detected = 1;
     }
 
@@ -537,8 +538,6 @@ void detectColission() {
 }
 
 void determineRemovedEdge() {
-    //? Determines which edge is removed starting from (0, 1) going counterclockwise
-
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {        
     switch (hexagons[i].removed_edge_index_1)
         {

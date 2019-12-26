@@ -1,4 +1,4 @@
-INPUT    ?= main.c
+INPUT    ?= main.c image.c
 OUTPUT   ?= main.out
 CC        = gcc
 CFLAGS    = -g -Wall
