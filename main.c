@@ -47,6 +47,8 @@
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
+#define TEXTURE_AGENT "wall.bmp"
+
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
@@ -91,6 +93,8 @@ static int number_of_lives = 3;
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
+
+static GLuint names[1];
 
 static GLfloat hexagon_colors[5][3] = {
     {224.0/255.0, 1, 1},
@@ -190,6 +194,37 @@ int main(int argc, char** argv) {
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
     glEnable(GL_COLOR_MATERIAL);
 
+
+    glEnable(GL_TEXTURE_2D);
+    Image* image = image_init(0, 0);
+    
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
+
+    /* Kreira se prva tekstura. */
+    image_read(image, TEXTURE_AGENT);
+
+    /* Generisu se identifikatori tekstura. */
+    glGenTextures(2, names);
+
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Unistava se objekat za citanje tekstura iz fajla. */
+    image_done(image);
+    
     animation_ongoing = 0;
 
     glClearColor(181.0/255.0, 234.0/255.0, 215.0/255.0, 0.0);
@@ -254,6 +289,7 @@ void drawAxis(float len) {
 static void on_keyboard(unsigned char key, int x, int y) {
     switch (key) {
     case KEY_ESCAPE:
+        glDeleteTextures(2, names);
         exit(0);
         break;
 
@@ -421,11 +457,14 @@ float getRandomizedScalingFactor() {
 
 void drawAgent() {
     glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, names[0]);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
             for (int i = 0; i < 3; i++) {
                 glVertex3fv(agent.agent_pos[i]);
+                glTexCoord3fv(agent.agent_pos[i]);
             }
+        glBindTexture(GL_TEXTURE_2D, 0);        
         glEnd();
     glPopMatrix();
 }
