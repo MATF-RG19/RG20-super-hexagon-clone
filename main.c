@@ -195,7 +195,6 @@ int main(int argc, char** argv) {
     glEnable(GL_COLOR_MATERIAL);
 
 
-    glEnable(GL_TEXTURE_2D);
     Image* image = image_init(0, 0);
     
     glTexEnvf(GL_TEXTURE_ENV,
@@ -458,14 +457,16 @@ float getRandomizedScalingFactor() {
 void drawAgent() {
     glPushMatrix();
         glBindTexture(GL_TEXTURE_2D, names[0]);
+        glEnable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
             for (int i = 0; i < 3; i++) {
-                glVertex3fv(agent.agent_pos[i]);
                 glTexCoord3fv(agent.agent_pos[i]);
+                glVertex3fv(agent.agent_pos[i]);
             }
         glBindTexture(GL_TEXTURE_2D, 0);        
         glEnd();
+        glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 }
 
