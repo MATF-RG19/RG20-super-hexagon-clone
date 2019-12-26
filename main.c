@@ -48,7 +48,8 @@
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
-#define TEXTURE_AGENT "yellow.bmp"
+#define TEXTURE_AGENT "img/yellow.bmp"
+#define TEXTURE_GAME_OVER "img/game_over.bmp"
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
@@ -59,6 +60,7 @@ void drawHelpBody();
 
 void drawSurface();
 void drawSurfaceForSingleHexagon(int idx);
+void initTextures();
 
 void initHexagons();
 void initAgent();
@@ -80,6 +82,7 @@ void detectColission();
 void determineRemovedEdge();
 
 void displayCurrentStats();
+void displayGameOver();
 void printText(char* text_to_be_displayed, float vertical_offset);
 
 static int animation_ongoing;
@@ -90,7 +93,9 @@ static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 static int rotation_is_active = 1;
 
 static int current_score = 0;
-static int number_of_lives = 3;
+
+//! return to 3
+static int number_of_lives = 1;
 
 static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
@@ -98,7 +103,7 @@ static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starti
 static int using_flat_model = 1;
 static int already_detected_colission_for_current_hexagon = 0;
 
-static GLuint names[1];
+static GLuint names[2];
 
 static GLfloat hexagon_colors[5][3] = {
     {224.0/255.0, 1, 1},
@@ -199,35 +204,7 @@ int main(int argc, char** argv) {
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
     glEnable(GL_COLOR_MATERIAL);
 
-
-    Image* image = image_init(0, 0);
-    
-    glTexEnvf(GL_TEXTURE_ENV,
-              GL_TEXTURE_ENV_MODE,
-              GL_REPLACE);
-
-    /* Kreira se prva tekstura. */
-    image_read(image, TEXTURE_AGENT);
-
-    /* Generisu se identifikatori tekstura. */
-    glGenTextures(2, names);
-
-    glBindTexture(GL_TEXTURE_2D, names[0]);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                 image->width, image->height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    /* Unistava se objekat za citanje tekstura iz fajla. */
-    image_done(image);
+    initTextures();    
     
     animation_ongoing = 0;
 
@@ -250,6 +227,41 @@ void drawSurface() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         drawSurfaceForSingleHexagon(hexagons_idx_by_size[i]);
     }
+}
+
+void initTextures() {
+    Image* image = image_init(0, 0);
+    
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
+
+    glGenTextures(2, names);
+
+    image_read(image, TEXTURE_AGENT);
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+
+    image_read(image, TEXTURE_GAME_OVER);
+    glBindTexture(GL_TEXTURE_2D, names[1]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    image_done(image);
 }
 
 void drawSurfaceForSingleHexagon(int idx) {
@@ -372,6 +384,12 @@ static void on_display(void) {
     );
     drawAxis(10);
 
+    //! remove
+    if(number_of_lives == 0) {
+        displayGameOver();
+        return;
+    }
+
     glPushMatrix();
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
@@ -477,9 +495,6 @@ float getRandomizedScalingFactor() {
 
 void drawAgent() {
     glPushMatrix();
-        glDisable(GL_LIGHTING);
-        glDisable(GL_LIGHT0);
-
         glBindTexture(GL_TEXTURE_2D, names[0]);
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
@@ -500,8 +515,6 @@ void drawAgent() {
         glBindTexture(GL_TEXTURE_2D, 0);        
         glEnd();
         glDisable(GL_TEXTURE_2D);
-        glEnable(GL_LIGHT0);
-        glEnable(GL_LIGHTING);
     glPopMatrix();
 }
 
@@ -668,3 +681,31 @@ void printText(char* text_to_be_displayed, float vertical_offset) {
     glPopMatrix();
 }
 
+void displayGameOver() {
+    printf("Game over!\n");
+    glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, names[1]);
+        glEnable(GL_TEXTURE_2D);
+        glRotatef(90, 0, 1, 0);
+        glTranslatef(-0.2, 0, 0);
+        glBegin(GL_POLYGON);
+
+            //upper_left
+            glTexCoord2f(0.03, 1);
+            glVertex3f(-1, 0, 1);
+
+            glTexCoord2f(0.03, 0.03);
+            glVertex3f(1, 0, 1);
+
+            glTexCoord2f(1, 0.03);
+            glVertex3f(1, 0, -1);
+
+            glTexCoord2f(1, 1);
+            glVertex3f(-1, 0, -1);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);        
+        glEnd();
+    glPopMatrix();
+        
+    glutSwapBuffers();
+}
