@@ -503,13 +503,13 @@ void drawAgent() {
             //     // glTexCoord3fv(agent.agent_pos[i]);
             //     glVertex3fv(agent.agent_pos[i]);
             // }
-            glTexCoord2f(10, 10);
+            glTexCoord2f(0, 0);
             glVertex3fv(agent.agent_pos[0]);
 
-            glTexCoord2f(44, 10);
+            glTexCoord2f(1, 0);
             glVertex3fv(agent.agent_pos[1]);
             
-            glTexCoord2f(10, 34);
+            glTexCoord2f(0.5, 1);
             glVertex3fv(agent.agent_pos[2]);
 
         glBindTexture(GL_TEXTURE_2D, 0);        
