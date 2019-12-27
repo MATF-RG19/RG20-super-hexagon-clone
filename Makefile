@@ -1,5 +1,5 @@
-INPUT    ?= main.c image.c general_gl_inits.c
-OUTPUT   ?= main.out
+INPUT     = main.c image.c general_gl_inits.c
+OUTPUT    = main.out
 CC        = gcc
 CFLAGS    = -g -Wall
 LDFLAGS   = -framework GLUT -framework OpenGL -framework Cocoa 
