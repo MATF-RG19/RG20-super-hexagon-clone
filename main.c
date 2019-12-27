@@ -32,14 +32,15 @@
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
-#define LOWER_LIMIT (55)
-#define UPPER_LIMIT (85)
+#define LOWER_LIMIT (80)
+#define UPPER_LIMIT (130)
 
 #define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
-#define MIN_DISTANCE (0.5)
-#define SAFE_DISTANCE (0.012)
+
+#define MIN_DISTANCE_BETWEEN_HEXAGONS (4)
+#define COLLISION_SAFE_DISTANCE (0.010)
 #define EPSILON (0.095)
 
 #define NUMBER_OF_HEXAGONS (5)
@@ -98,7 +99,7 @@ static int current_score = 0;
 //! return to 3
 static int number_of_lives = 1;
 
-static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {5.0, 4.0, 3.0, 2.0, 1.0}; 
+static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {8.0, 6.0, 4.0, 2.0, 0.5}; 
 static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
 
 static int using_flat_model = 1;
@@ -332,6 +333,10 @@ static void on_keyboard(unsigned char key, int x, int y) {
 
     case KEY_PAUSE_ROTATION:
         rotation_is_active = !rotation_is_active;
+        if(!animation_ongoing) {
+            glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+            animation_ongoing = 1;
+        }
         break;
     
     case KEY_CHANGE_SHADE_MODEL:
@@ -393,8 +398,6 @@ static void on_display(void) {
     //     return;
     // }
 
-    //FIXME most likely problem is that random sometimes chooses lesser value that it's currently displayed, since it can go from 5 to 8.5
-    // try to catch these kind of errors 
 
     glPushMatrix();
         glEnable(GL_LIGHTING);
@@ -588,7 +591,8 @@ void checkForImpassableTerrain() {
     float distance = calculateDistance(hex0_idx, hex1_idx);
     printf("current distance: %f\n", distance);
 
-    if (distance < MIN_DISTANCE) {
+    if (distance < MIN_DISTANCE_BETWEEN_HEXAGONS) {
+        printf("Impassable terrain detected, fixing...\n");
         hexagons[hex0_idx].removed_edge_index_1 = hexagons[hex1_idx].removed_edge_index_1;
         hexagons[hex0_idx].removed_edge_index_2 = hexagons[hex1_idx].removed_edge_index_2;
     }
@@ -608,22 +612,15 @@ float calculateDistance(int idx0, int idx1) {
     return d;
 }
 
-//TODO change to bool at some point
 void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
     Hexagon current_hexagon = hexagons[nearest_idx];
     
-    // printf("current_removed_edge: %d\n", current_hexagon.removed_edge);
-
     //? Only check the tip of the agent, that is the third coordinate in the array.
     float agent_z = agent.agent_pos[2][2];
 
     int right_angle = current_hexagon.removed_edge * 60;
     int left_angle = (current_hexagon.removed_edge + 1) * 60;
-
-    // printf("Right angle: %d, left angle: %d\n", right_angle, left_angle);
-    // printf("Right angle reversed : %d, left angle reversed: %d\n", right_angle - 360, left_angle-360);
-    // printf("rotation_step: %d\n", rotation_step);
 
     int goes_through_removed_edge = 0;
     if(right_angle <= rotation_step && rotation_step <= left_angle) {
@@ -640,17 +637,14 @@ void detectColission() {
 
     int colission_detected = 0;
 
-    if (fabsf (agent_z - hexagon_y) <= SAFE_DISTANCE && !goes_through_removed_edge) {
-        // printf("Colission detected\n");
+    if (fabsf (agent_z - hexagon_y) <= COLLISION_SAFE_DISTANCE && !goes_through_removed_edge) {
         colission_detected = 1;
-        
         if(!already_detected_colission_for_current_hexagon) {
             number_of_lives--;
             already_detected_colission_for_current_hexagon = 1;
         }
         
     }
-    // return colission_detected
 }
 
 void determineRemovedEdge() {
