@@ -5,51 +5,9 @@
 #include <math.h>
 #include <time.h>
 #include "image.h"
-
-#define WINDOW_WIDTH (1920)
-#define WINDOW_HEIGHT (1000)
-#define WINDOW_POS_X (1080 / 2)
-#define WINDOW_POS_Y (1920 / 2)
-
-#define CAMERA_FOV (45)
-
-#define TIMER_ID (0)
-#define TIMER_INTERVAL (17) //? ~60fps
-
-#define KEY_ESCAPE (27)
-#define KEY_LEFT ('a')
-#define KEY_RIGHT ('d')
-#define KEY_STOP ('s')
-#define KEY_PAUSE_ROTATION (' ')
-#define KEY_CHANGE_SHADE_MODEL ('m')
-
-#define HEXAGON_X (0.87) //? ~sqrt(3) / 2
-#define HEXAGON_Z (0.5)
-#define HEXAGON_X_AXIS (0.0)
-#define HEXAGON_Z_AXIS (1.0)
-#define HEXAGON_SCALING_FACTOR (0.996)
-#define HEXAGON_ROTATION_STEP (1)
-#define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
-#define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
-#define HEXAGON_STARTING_SCALE_FACTOR (2)
-#define LOWER_LIMIT (120)
-#define UPPER_LIMIT (190)
-
-#define NO_DISTANCE (-1)
-#define ILLEGAL_VALUE (-1)
-
-#define MIN_DISTANCE_BETWEEN_HEXAGONS (4)
-#define COLLISION_SAFE_DISTANCE (0.010)
-#define EPSILON (0.095)
-
-#define NUMBER_OF_HEXAGONS (5)
-
-#define TEXT_POS_X (1.895)
-#define TEXT_POS_Z (1.225)
-#define TEXT_VERTICAL_OFFSET (0.075)
-
-#define TEXTURE_AGENT "img/yellow.bmp"
-#define TEXTURE_GAME_OVER "img/game_over.bmp"
+#include "common.h"
+#include "types.h"
+#include "general_gl_inits.h"
 
 //? Callback functions
 static void on_keyboard(unsigned char key, int x, int y);
@@ -64,9 +22,6 @@ void drawSurfaceForSingleHexagon(int idx);
 //? All inits
 void initHexagons();
 void initAgent();
-void initLightning();
-void initMaterial();
-void initTextures();
 
 //? Hexagon drawing flow
 void drawAllHexagons();
@@ -120,7 +75,7 @@ GLfloat hexagon_colors[5][3] = {
     {1, 1, 216.0/255.0}
 };  
 
-typedef GLfloat point[3];
+// typedef GLfloat point[3];
 
 point vertices[12] = {
         // 0
@@ -148,22 +103,6 @@ point agent_pos[3] = {
     {-0.025, 0, 0},
     {0,  0, 0.1},
 };
-
-typedef struct {
-    point* vertices;
-    int index;
-    float distances[3]; 
-    int removed_edge_index_1;
-    int removed_edge_index_2;
-    float scaling_factor;
-    int left_angle;
-    int right_angle;
-    int removed_edge;
-} Hexagon;
-
-typedef struct {
-    point* agent_pos;
-} Agent;
 
 Hexagon hexagons[NUMBER_OF_HEXAGONS];
 Agent agent;
@@ -241,69 +180,6 @@ void initHexagons() {
 
 void initAgent() {
     agent.agent_pos = agent_pos;
-}
-
-void initLightning() {
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glShadeModel(GL_FLAT);
-
-    float light_position[] = {0, 2, 1, 1};
-    float light_ambient[] = {.3f, .3f, .3f, 1};
-    float light_diffuse[] = {.7f, .7f, .7f, 1};
-    float light_specular[] = {.7f, .7f, .7f, 1};
-
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
-}
-
-void initMaterial() {
-    GLfloat ambient[] = {0.3,0.3,0.3,0};
-    GLfloat diffuse[] = {0,0.7,0,0};
-    GLfloat specular[] = {0.6,0.6,0.6,0};
-    GLfloat shininess = 40;
-
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    glEnable(GL_COLOR_MATERIAL);
-}
-
-void initTextures() {
-    Image* image = image_init(0, 0);
-    
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    glGenTextures(2, names);
-
-    image_read(image, TEXTURE_AGENT);
-    glBindTexture(GL_TEXTURE_2D, names[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                 image->width, image->height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-
-    image_read(image, TEXTURE_GAME_OVER);
-    glBindTexture(GL_TEXTURE_2D, names[1]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                 image->width, image->height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    image_done(image);
 }
 
 static void on_keyboard(unsigned char key, int x, int y) {

@@ -1,4 +1,4 @@
-INPUT    ?= main.c image.c
+INPUT    ?= main.c image.c general_gl_inits.c
 OUTPUT   ?= main.out
 CC        = gcc
 CFLAGS    = -g -Wall

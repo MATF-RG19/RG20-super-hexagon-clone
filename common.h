@@ -1,3 +1,9 @@
+#ifndef COMMON_H
+#define COMMON_H
+
+#define GL_SILENCE_DEPRECATION
+#include <GLUT/glut.h>
+
 #define WINDOW_WIDTH (1920)
 #define WINDOW_HEIGHT (1000)
 #define WINDOW_POS_X (1080 / 2)
@@ -40,7 +46,7 @@
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
-#define TEXTURE_AGENT "img/yellow.bmp"
-#define TEXTURE_GAME_OVER "img/game_over.bmp"
+extern GLuint names[2];
 
+#endif
 
