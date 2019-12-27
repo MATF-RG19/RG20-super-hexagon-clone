@@ -69,7 +69,8 @@ void drawHexagon();
 void updateScalingFactorsAndScore();
 void updateRotationStep();
 void drawAllHexagons();
-float getRandomizedScalingFactor();
+float getRandomizedScalingFactor(int idx);
+int impossibleScaling(int idx, float scaling);
 void drawPartialHexagon();
 void drawAllHexagons();
 void rearrangeHexagons();
@@ -468,7 +469,7 @@ void updateScalingFactorsAndScore() {
             //? We are updating the score cuz this means we've passed 1 hexagon
             current_score++;
 
-            hexagons[i].scaling_factor = getRandomizedScalingFactor();
+            hexagons[i].scaling_factor = getRandomizedScalingFactor(i);
 
             for (int j = 0; j < NUMBER_OF_HEXAGONS; j++) {
                 if(i != j && hexagons[j].scaling_factor > hexagons[i].scaling_factor) {
@@ -496,12 +497,26 @@ void updateRotationStep() {
     rotation_step = rotation_step % 360;
 }
 
-float getRandomizedScalingFactor() {
-    //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
-    float scaling = (rand() % (UPPER_LIMIT - LOWER_LIMIT + 1)) + LOWER_LIMIT;
-    scaling /= 10;
+float getRandomizedScalingFactor(int idx) {
+
+     //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
+    float scaling = 0;
+
+    while(impossibleScaling(idx, scaling)) {
+        scaling = (rand() % (UPPER_LIMIT - LOWER_LIMIT + 1)) + LOWER_LIMIT;
+        scaling /= 10;
+    }
 
     return scaling;
+}
+
+int impossibleScaling(int idx, float scaling) {
+    for (int j = 0; j < NUMBER_OF_HEXAGONS; j++) {
+        if(idx != j && hexagons[j].scaling_factor > scaling) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void drawAgent() {
