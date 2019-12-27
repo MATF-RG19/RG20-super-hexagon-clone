@@ -94,25 +94,25 @@ void printText(char* text_to_be_displayed, float vertical_offset);
 
 void displayGameOver();
 
-static int animation_ongoing;
+int animation_ongoing;
 
-static float scaling_factor = 1;
-static int rotation_step = 0;
-static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
-static int rotation_is_active = 1;
+float scaling_factor = 1;
+int rotation_step = 0;
+float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
+int rotation_is_active = 1;
 
-static int current_score = 0;
-static int number_of_lives = 3;
+int current_score = 0;
+int number_of_lives = 3;
 
-static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {12.0, 6.0, 3.0, 1.0, 0.5}; 
-static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; //? starting from the biggest hexagon
+float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {12.0, 6.0, 3.0, 1.0, 0.5}; 
+int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; //? starting from the biggest hexagon
 
-static int using_flat_model = 1;
-static int already_detected_colission_for_current_hexagon = 0;
+int using_flat_model = 1;
+int already_detected_colission_for_current_hexagon = 0;
 
-static GLuint names[2];
+GLuint names[2];
 
-static GLfloat hexagon_colors[5][3] = {
+GLfloat hexagon_colors[5][3] = {
     {224.0/255.0, 1, 1},
     {199.0/255.0, 206.0/255.0, 234.0/255.0},
     {1, 218.0/255.0, 193.0/255.0},
@@ -122,7 +122,7 @@ static GLfloat hexagon_colors[5][3] = {
 
 typedef GLfloat point[3];
 
-static point vertices[12] = {
+point vertices[12] = {
         // 0
         {HEXAGON_X_AXIS, 0,  HEXAGON_Z_AXIS           },
         {HEXAGON_X,      0,  HEXAGON_Z                },
@@ -143,7 +143,7 @@ static point vertices[12] = {
         {HEXAGON_X_AXIS, 0,  HEXAGON_Z_AXIS           }
     };
 
-static point agent_pos[3] = {
+point agent_pos[3] = {
     {0.025,  0, 0},
     {-0.025, 0, 0},
     {0,  0, 0.1},
@@ -165,8 +165,8 @@ typedef struct {
     point* agent_pos;
 } Agent;
 
-static Hexagon hexagons[NUMBER_OF_HEXAGONS];
-static Agent agent;
+Hexagon hexagons[NUMBER_OF_HEXAGONS];
+Agent agent;
 
 int main(int argc, char** argv) {
     srand(time(NULL));
