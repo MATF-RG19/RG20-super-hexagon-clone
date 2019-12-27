@@ -32,8 +32,8 @@
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
 #define HEXAGON_STARTING_SCALE_FACTOR (2)
-#define LOWER_LIMIT (80)
-#define UPPER_LIMIT (130)
+#define LOWER_LIMIT (120)
+#define UPPER_LIMIT (190)
 
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
@@ -51,43 +51,48 @@
 #define TEXTURE_AGENT "img/yellow.bmp"
 #define TEXTURE_GAME_OVER "img/game_over.bmp"
 
+//? Callback functions
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 
-void drawAxis(float len);
-
+//? Surface drawing flow
 void drawSurface();
 void drawSurfaceForSingleHexagon(int idx);
 
+//? All inits
+void initHexagons();
+void initAgent();
 void initLightning();
 void initMaterial();
 void initTextures();
 
-void initHexagons();
-void initAgent();
-
-void drawHexagon();
-void updateScalingFactorsAndScore();
-void updateRotationStep();
+//? Hexagon drawing flow
 void drawAllHexagons();
+void drawHexagon(int idx);
+void drawPartialHexagon(int idx);
+
+//? Hexagon resize flow
+void updateScalingFactorsAndScore();
 float getRandomizedScalingFactor(int idx);
 int impossibleScaling(int idx, float scaling);
-void drawPartialHexagon();
-void drawAllHexagons();
 void rearrangeHexagons();
 void checkForImpassableTerrain(); 
+float calculateDistance(int idx0, int idx1);
+
+void updateRotationStep();
 
 void drawAgent();
 
-float calculateDistance(int idx0, int idx1);
 void detectColission();
+
 void determineRemovedEdge();
 
 void displayCurrentStats();
-void displayGameOver();
 void printText(char* text_to_be_displayed, float vertical_offset);
+
+void displayGameOver();
 
 static int animation_ongoing;
 
@@ -97,12 +102,10 @@ static float rotation_direction = HEXAGON_POSITIVE_ROTATION_DIRECTION;
 static int rotation_is_active = 1;
 
 static int current_score = 0;
+static int number_of_lives = 3;
 
-//! return to 3
-static int number_of_lives = 1;
-
-static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {8.0, 6.0, 4.0, 2.0, 0.5}; 
-static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; // starting from the biggest hexagon
+static float hexagon_edge_length[NUMBER_OF_HEXAGONS] = {12.0, 6.0, 3.0, 1.0, 0.5}; 
+static int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; //? starting from the biggest hexagon
 
 static int using_flat_model = 1;
 static int already_detected_colission_for_current_hexagon = 0;
@@ -166,9 +169,6 @@ static Hexagon hexagons[NUMBER_OF_HEXAGONS];
 static Agent agent;
 
 int main(int argc, char** argv) {
-    initHexagons();
-    initAgent();
-    
     srand(time(NULL));
 
     glutInit(&argc, argv);
@@ -182,6 +182,8 @@ int main(int argc, char** argv) {
     glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
     
+    initHexagons();
+    initAgent();
     initLightning();
     initMaterial();
     initTextures();    
@@ -219,6 +221,28 @@ void drawSurfaceForSingleHexagon(int idx) {
     glPopMatrix();
 }
 
+void initHexagons() {
+    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
+        hexagons[i].vertices = vertices;
+        hexagons[i].index = i;
+        
+        for(int j = 0; j < NUMBER_OF_HEXAGONS-1; j++) {
+            hexagons[i].distances[j] = NO_DISTANCE;
+        }
+        
+        hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
+        hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
+        hexagons[i].scaling_factor = hexagon_edge_length[i];
+        
+        hexagons[i].left_angle = ILLEGAL_VALUE;
+        hexagons[i].right_angle = ILLEGAL_VALUE;
+    }
+}
+
+void initAgent() {
+    agent.agent_pos = agent_pos;
+}
+
 void initLightning() {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -252,9 +276,7 @@ void initMaterial() {
 void initTextures() {
     Image* image = image_init(0, 0);
     
-    glTexEnvf(GL_TEXTURE_ENV,
-              GL_TEXTURE_ENV_MODE,
-              GL_REPLACE);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
     glGenTextures(2, names);
 
@@ -282,26 +304,6 @@ void initTextures() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     image_done(image);
-}
-
-void drawAxis(float len) {
-    glPushMatrix();
-        glDisable(GL_LIGHTING);
-            glBegin(GL_LINES);
-                glColor3f(1,0,0);
-                glVertex3f(0,0,0);
-                glVertex3f(len,0,0);
-
-                glColor3f(0,1,0);
-                glVertex3f(0,0,0);
-                glVertex3f(0,len,0);
-
-                glColor3f(0,0,1);
-                glVertex3f(0,0,0);
-                glVertex3f(0,0,len);
-            glEnd();
-        glEnable(GL_LIGHTING);
-    glPopMatrix();
 }
 
 static void on_keyboard(unsigned char key, int x, int y) {
@@ -388,14 +390,11 @@ static void on_display(void) {
         0, 0, 0, 
         0, 1, 0
     );
-    drawAxis(10);
 
-    //! remove
-    // if(number_of_lives == 0) {
-    //     displayGameOver();
-    //     return;
-    // }
-
+    if(number_of_lives == 0) {
+        displayGameOver();
+        return;
+    }
 
     glPushMatrix();
         glRotatef(rotation_step, 0, 1, 0);
@@ -408,7 +407,6 @@ static void on_display(void) {
     drawAgent();
     displayCurrentStats();
 
-    
     updateRotationStep();
     updateScalingFactorsAndScore();
     detectColission();
@@ -489,11 +487,6 @@ void updateScalingFactorsAndScore() {
     }
 }
 
-void updateRotationStep() {
-    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction * rotation_is_active;
-    rotation_step = rotation_step % 360;
-}
-
 float getRandomizedScalingFactor(int idx) {
 
      //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
@@ -514,46 +507,6 @@ int impossibleScaling(int idx, float scaling) {
         }
     }
     return 0;
-}
-
-void drawAgent() {
-    glPushMatrix();
-        glBindTexture(GL_TEXTURE_2D, names[0]);
-        glEnable(GL_TEXTURE_2D);
-        glBegin(GL_TRIANGLES);
-            glColor3f(0, 1, 0);
-
-            glTexCoord2f(0, 0);
-            glVertex3fv(agent.agent_pos[0]);
-
-            glTexCoord2f(1, 0);
-            glVertex3fv(agent.agent_pos[1]);
-            
-            glTexCoord2f(0.5, 1);
-            glVertex3fv(agent.agent_pos[2]);
-
-        glBindTexture(GL_TEXTURE_2D, 0);        
-        glEnd();
-        glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
-}
-
-void initHexagons() {
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        hexagons[i].vertices = vertices;
-        hexagons[i].index = i;
-        
-        for(int j = 0; j < NUMBER_OF_HEXAGONS-1; j++) {
-            hexagons[i].distances[j] = NO_DISTANCE;
-        }
-        
-        hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
-        hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
-        hexagons[i].scaling_factor = hexagon_edge_length[i];
-        
-        hexagons[i].left_angle = ILLEGAL_VALUE;
-        hexagons[i].right_angle = ILLEGAL_VALUE;
-    }
 }
 
 void rearrangeHexagons() {
@@ -592,10 +545,6 @@ void checkForImpassableTerrain() {
     }
 }
 
-void initAgent() {
-    agent.agent_pos = agent_pos;
-}
-
 float calculateDistance(int idx0, int idx1) {    
     float idx0_edge = hexagons[idx0].vertices[0][2] * hexagons[idx0].scaling_factor;
     float idx1_edge = hexagons[idx1].vertices[0][2] * hexagons[idx1].scaling_factor;
@@ -605,6 +554,34 @@ float calculateDistance(int idx0, int idx1) {
 
     return d;
 }
+
+void updateRotationStep() {
+    rotation_step += HEXAGON_ROTATION_STEP * rotation_direction * rotation_is_active;
+    rotation_step = rotation_step % 360;
+}
+
+void drawAgent() {
+    glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, names[0]);
+        glEnable(GL_TEXTURE_2D);
+        glBegin(GL_TRIANGLES);
+            glColor3f(0, 1, 0);
+
+            glTexCoord2f(0, 0);
+            glVertex3fv(agent.agent_pos[0]);
+
+            glTexCoord2f(1, 0);
+            glVertex3fv(agent.agent_pos[1]);
+            
+            glTexCoord2f(0.5, 1);
+            glVertex3fv(agent.agent_pos[2]);
+
+        glBindTexture(GL_TEXTURE_2D, 0);        
+        glEnd();
+        glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+}
+
 
 void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
@@ -623,8 +600,6 @@ void detectColission() {
     if(right_angle - 360 <= rotation_step && rotation_step <= left_angle - 360) {
         goes_through_removed_edge = 1;
     }
-
-    // printf("Goes through removed edge: %d\n", goes_through_removed_edge);
 
     //? We have normalized coord system so we can do this
     float hexagon_y = hexagons[nearest_idx].scaling_factor;
@@ -681,6 +656,7 @@ void displayCurrentStats() {
     printText(display_current_score, 0);
     printText(display_number_of_lives, TEXT_VERTICAL_OFFSET);
 }
+
 void printText(char* text_to_be_displayed, float vertical_offset) {
     glPushMatrix();
         glColor3f(1, 1, 1);
@@ -691,8 +667,7 @@ void printText(char* text_to_be_displayed, float vertical_offset) {
     glPopMatrix();
 }
 
-void displayGameOver() {
-    
+void displayGameOver() {    
     float vertical_offset = 0.03;
 
     glPushMatrix();
