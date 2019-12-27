@@ -35,7 +35,6 @@
 #define LOWER_LIMIT (80)
 #define UPPER_LIMIT (130)
 
-#define ILLEGAL_EDGE (-1)
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
 
@@ -56,11 +55,14 @@ static void on_keyboard(unsigned char key, int x, int y);
 static void on_display(void);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
+
 void drawAxis(float len);
-void drawHelpBody();
 
 void drawSurface();
 void drawSurfaceForSingleHexagon(int idx);
+
+void initLightning();
+void initMaterial();
 void initTextures();
 
 void initHexagons();
@@ -180,32 +182,8 @@ int main(int argc, char** argv) {
     glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
     
-    // glEnable(GL_LIGHTING);
-    // glEnable(GL_LIGHT0);
-    glShadeModel(GL_FLAT);
-
-    float light_position[] = {0, 2, 1, 1};
-    float light_ambient[] = {.3f, .3f, .3f, 1};
-    float light_diffuse[] = {.7f, .7f, .7f, 1};
-    float light_specular[] = {.7f, .7f, .7f, 1};
-
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
-
-    GLfloat ambient[] = {0.3,0.3,0.3,0};
-    GLfloat diffuse[] = {0,0.7,0,0};
-    GLfloat specular[] = {0.6,0.6,0.6,0};
-    GLfloat shininess = 40;
-
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    glEnable(GL_COLOR_MATERIAL);
-
+    initLightning();
+    initMaterial();
     initTextures();    
     
     animation_ongoing = 0;
@@ -214,15 +192,6 @@ int main(int argc, char** argv) {
     glLineWidth(2);
 
     glutMainLoop();
-}
-
-void drawHelpBody() {
-    glPushMatrix();
-        glRotatef(-90, 1, 0, 0);
-        glTranslatef(0, -2, 0);
-        glColor3f(0, 0.8, 0);
-        glutSolidCone(5, 0.001, 60, 60);
-    glPopMatrix();
 }
 
 void drawSurface() {
@@ -250,6 +219,35 @@ void drawSurfaceForSingleHexagon(int idx) {
     glPopMatrix();
 }
 
+void initLightning() {
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glShadeModel(GL_FLAT);
+
+    float light_position[] = {0, 2, 1, 1};
+    float light_ambient[] = {.3f, .3f, .3f, 1};
+    float light_diffuse[] = {.7f, .7f, .7f, 1};
+    float light_specular[] = {.7f, .7f, .7f, 1};
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
+}
+
+void initMaterial() {
+    GLfloat ambient[] = {0.3,0.3,0.3,0};
+    GLfloat diffuse[] = {0,0.7,0,0};
+    GLfloat specular[] = {0.6,0.6,0.6,0};
+    GLfloat shininess = 40;
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    glEnable(GL_COLOR_MATERIAL);
+}
 
 void initTextures() {
     Image* image = image_init(0, 0);
@@ -400,15 +398,11 @@ static void on_display(void) {
 
 
     glPushMatrix();
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
         glRotatef(rotation_step, 0, 1, 0);
         glScalef(scaling_factor, scaling_factor, scaling_factor);
         drawSurface();
         drawAllHexagons();
         determineRemovedEdge();
-        glDisable(GL_LIGHTING);
-        glDisable(GL_LIGHT0);
     glPopMatrix();
 
     drawAgent();
