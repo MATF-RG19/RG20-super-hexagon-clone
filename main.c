@@ -45,7 +45,7 @@
 
 #define NUMBER_OF_HEXAGONS (5)
 
-#define TEXT_POS_X (1.875)
+#define TEXT_POS_X (1.895)
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
 
@@ -687,7 +687,6 @@ void displayCurrentStats() {
     printText(display_current_score, 0);
     printText(display_number_of_lives, TEXT_VERTICAL_OFFSET);
 }
-
 void printText(char* text_to_be_displayed, float vertical_offset) {
     glPushMatrix();
         glColor3f(1, 1, 1);
