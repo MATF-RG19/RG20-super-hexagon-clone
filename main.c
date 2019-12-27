@@ -452,7 +452,7 @@ void drawPartialHexagon(int hexagon_idx) {
         hexagons[hexagon_idx].removed_edge_index_1 = no_draw_1;
         hexagons[hexagon_idx].removed_edge_index_2 = no_draw_2;
     }
-    
+
     for (int i = 0; i < ver_num; i++) {
         if(i != hexagons[hexagon_idx].removed_edge_index_1 && i != hexagons[hexagon_idx].removed_edge_index_2) {
             glVertex3fv(hexagons[hexagon_idx].vertices[i]);
@@ -469,6 +469,12 @@ void updateScalingFactorsAndScore() {
             current_score++;
 
             hexagons[i].scaling_factor = getRandomizedScalingFactor();
+
+            for (int j = 0; j < NUMBER_OF_HEXAGONS; j++) {
+                if(i != j && hexagons[j].scaling_factor > hexagons[i].scaling_factor) {
+                    printf("\nIMPOSSIBLE SITUATION! \n\n");
+                }
+            }
             
             //? reset removed edges, so every time hexagon is rescaled new 
             //? random point is choosen
