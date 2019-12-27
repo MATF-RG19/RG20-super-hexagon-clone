@@ -39,7 +39,7 @@
 #define NO_DISTANCE (-1)
 #define ILLEGAL_VALUE (-1)
 #define MIN_DISTANCE (0.5)
-#define SAFE_DISTANCE (0.015)
+#define SAFE_DISTANCE (0.012)
 #define EPSILON (0.095)
 
 #define NUMBER_OF_HEXAGONS (5)
@@ -229,6 +229,26 @@ void drawSurface() {
     }
 }
 
+
+void drawSurfaceForSingleHexagon(int idx) {
+    Hexagon hexagon = hexagons[idx];
+    GLfloat coord_center[] = {0, 0, 0};
+    GLfloat* color = hexagon_colors[idx];
+
+    glPushMatrix();        
+        glColor3fv(color); 
+        glScalef(hexagon.scaling_factor, hexagon.scaling_factor, hexagon.scaling_factor);
+        glBegin(GL_TRIANGLES);
+            for(int i = 0; i < 11; i++) {
+                glVertex3fv(coord_center);
+                glVertex3fv(hexagon.vertices[i]);
+                glVertex3fv(hexagon.vertices[i+1]);
+            }
+        glEnd();
+    glPopMatrix();
+}
+
+
 void initTextures() {
     Image* image = image_init(0, 0);
     
@@ -262,24 +282,6 @@ void initTextures() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     image_done(image);
-}
-
-void drawSurfaceForSingleHexagon(int idx) {
-    Hexagon hexagon = hexagons[idx];
-    GLfloat coord_center[] = {0, 0, 0};
-    GLfloat* color = hexagon_colors[idx];
-
-    glPushMatrix();        
-        glColor3fv(color); 
-        glScalef(hexagon.scaling_factor, hexagon.scaling_factor, hexagon.scaling_factor);
-        glBegin(GL_TRIANGLES);
-            for(int i = 0; i < 11; i++) {
-                glVertex3fv(coord_center);
-                glVertex3fv(hexagon.vertices[i]);
-                glVertex3fv(hexagon.vertices[i+1]);
-            }
-        glEnd();
-    glPopMatrix();
 }
 
 void drawAxis(float len) {
@@ -385,10 +387,10 @@ static void on_display(void) {
     drawAxis(10);
 
     //! remove
-    if(number_of_lives == 0) {
-        displayGameOver();
-        return;
-    }
+    // if(number_of_lives == 0) {
+    //     displayGameOver();
+    //     return;
+    // }
 
     glPushMatrix();
         glEnable(GL_LIGHTING);
@@ -415,7 +417,7 @@ static void on_display(void) {
 
 void drawAllHexagons() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        drawHexagon(i);
+        drawHexagon(hexagons_idx_by_size[i]);
     }
 }
 
@@ -621,6 +623,7 @@ void detectColission() {
         if(!already_detected_colission_for_current_hexagon) {
             number_of_lives--;
             already_detected_colission_for_current_hexagon = 1;
+            animation_ongoing = 0;
         }
         
     }
