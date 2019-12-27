@@ -392,6 +392,9 @@ static void on_display(void) {
     //     return;
     // }
 
+    //FIXME most likely problem is that random sometimes chooses lesser value that it's currently displayed, since it can go from 5 to 8.5
+    // try to catch these kind of errors 
+
     glPushMatrix();
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
@@ -623,7 +626,6 @@ void detectColission() {
         if(!already_detected_colission_for_current_hexagon) {
             number_of_lives--;
             already_detected_colission_for_current_hexagon = 1;
-            animation_ongoing = 0;
         }
         
     }
