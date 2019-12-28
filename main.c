@@ -342,13 +342,7 @@ void updateScalingFactorsAndScore() {
 
             hexagons[i].scaling_factor = getRandomizedScalingFactor(i);
 
-            for (int j = 0; j < NUMBER_OF_HEXAGONS; j++) {
-                if(i != j && hexagons[j].scaling_factor > hexagons[i].scaling_factor) {
-                    printf("\nIMPOSSIBLE SITUATION! \n\n");
-                }
-            }
-            
-            //? reset removed edges, so every time hexagon is rescaled new 
+            //? reset removed edges, so every time hexagon is rescaled new
             //? random point is choosen
             hexagons[i].removed_edge_index_1 = ILLEGAL_VALUE;
             hexagons[i].removed_edge_index_2 = ILLEGAL_VALUE;
@@ -397,25 +391,15 @@ void rearrangeHexagons() {
     for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
         hexagons_idx_by_size[i] = tmp_arr[i];
     }
-
-    printf("Current order of hexagons: \n");
-    for (int i = 0; i < NUMBER_OF_HEXAGONS; i++) {
-        printf("%d ", hexagons_idx_by_size[i]);
-    }
-    printf("\n");
 }
 
 void checkForImpassableTerrain() {
     int hex0_idx = hexagons_idx_by_size[0];
     int hex1_idx = hexagons_idx_by_size[1];
 
-    printf("Checking %d and %d\n", hex0_idx, hex1_idx);
-
     float distance = calculateDistance(hex0_idx, hex1_idx);
-    printf("current distance: %f\n", distance);
 
     if (distance < MIN_DISTANCE_BETWEEN_HEXAGONS) {
-        printf("Impassable terrain detected, fixing...\n");
         hexagons[hex0_idx].removed_edge_index_1 = hexagons[hex1_idx].removed_edge_index_1;
         hexagons[hex0_idx].removed_edge_index_2 = hexagons[hex1_idx].removed_edge_index_2;
     }
@@ -426,8 +410,6 @@ float calculateDistance(int idx0, int idx1) {
     float idx1_edge = hexagons[idx1].vertices[0][2] * hexagons[idx1].scaling_factor;
 
     float d = fabsf(idx0_edge - idx1_edge);
-    printf("Distance between %d and %d is %f\n", idx0, idx1, d);
-
     return d;
 }
 
