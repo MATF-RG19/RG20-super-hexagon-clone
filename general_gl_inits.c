@@ -1,5 +1,4 @@
-#define GL_SILENCE_DEPRECATION
-#include <GLUT/glut.h>
+#include <GL/glut.h>
 #include "image.h"
 #include "common.h"
 #include "general_gl_inits.h"
