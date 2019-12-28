@@ -25,7 +25,7 @@
 #define HEXAGON_Z (0.5)
 #define HEXAGON_X_AXIS (0.0)
 #define HEXAGON_Z_AXIS (1.0)
-#define HEXAGON_SCALING_FACTOR (0.996)
+#define HEXAGON_SCALING_FACTOR (0.995)
 #define HEXAGON_ROTATION_STEP (1)
 #define HEXAGON_POSITIVE_ROTATION_DIRECTION (1)
 #define HEXAGON_NEGATIVE_ROTATION_DIRECTION (-1)
@@ -45,8 +45,6 @@
 #define TEXT_POS_X (1.895)
 #define TEXT_POS_Z (1.225)
 #define TEXT_VERTICAL_OFFSET (0.075)
-
-extern GLuint names[2];
 
 #endif
 

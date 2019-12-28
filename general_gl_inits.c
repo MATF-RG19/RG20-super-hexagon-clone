@@ -7,7 +7,7 @@
 #define TEXTURE_AGENT "img/yellow.bmp"
 #define TEXTURE_GAME_OVER "img/game_over.bmp"
 
-GLuint names[2];
+GLuint texture_names[2];
 
 void initLightning() {
     glEnable(GL_LIGHTING);
@@ -44,10 +44,10 @@ void initTextures() {
     
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-    glGenTextures(2, names);
+    glGenTextures(2, texture_names);
 
     image_read(image, TEXTURE_AGENT);
-    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glBindTexture(GL_TEXTURE_2D, texture_names[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -59,7 +59,7 @@ void initTextures() {
 
 
     image_read(image, TEXTURE_GAME_OVER);
-    glBindTexture(GL_TEXTURE_2D, names[1]);
+    glBindTexture(GL_TEXTURE_2D, texture_names[1]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

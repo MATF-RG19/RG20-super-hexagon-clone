@@ -24,6 +24,7 @@ void initHexagons();
 void initAgent();
 
 //? Hexagon drawing flow
+void drawCurrentBoardState();
 void drawAllHexagons();
 void drawHexagon(int idx);
 void drawPartialHexagon(int idx);
@@ -65,7 +66,7 @@ int hexagons_idx_by_size[NUMBER_OF_HEXAGONS] = {0, 1, 2, 3, 4}; //? starting fro
 int using_flat_model = 1;
 int already_detected_colission_for_current_hexagon = 0;
 
-GLuint names[2];
+GLuint texture_names[2];
 
 GLfloat hexagon_colors[5][3] = {
     {224.0/255.0, 1, 1},
@@ -74,8 +75,6 @@ GLfloat hexagon_colors[5][3] = {
     {1, 154./255.0, 162.0/255.0},
     {1, 1, 216.0/255.0}
 };  
-
-// typedef GLfloat point[3];
 
 point vertices[12] = {
         // 0
@@ -141,7 +140,6 @@ void drawSurface() {
     }
 }
 
-
 void drawSurfaceForSingleHexagon(int idx) {
     Hexagon hexagon = hexagons[idx];
     GLfloat coord_center[] = {0, 0, 0};
@@ -185,7 +183,7 @@ void initAgent() {
 static void on_keyboard(unsigned char key, int x, int y) {
     switch (key) {
     case KEY_ESCAPE:
-        glDeleteTextures(2, names);
+        glDeleteTextures(2, texture_names);
         exit(0);
         break;
 
@@ -271,15 +269,7 @@ static void on_display(void) {
         displayGameOver();
         return;
     }
-
-    glPushMatrix();
-        glRotatef(rotation_step, 0, 1, 0);
-        glScalef(scaling_factor, scaling_factor, scaling_factor);
-        drawSurface();
-        drawAllHexagons();
-        determineRemovedEdge();
-    glPopMatrix();
-
+    drawCurrentBoardState();
     drawAgent();
     displayCurrentStats();
 
@@ -288,6 +278,16 @@ static void on_display(void) {
     detectColission();
     
     glutSwapBuffers();
+}
+
+void drawCurrentBoardState() {
+    glPushMatrix();
+        glRotatef(rotation_step, 0, 1, 0);
+        glScalef(scaling_factor, scaling_factor, scaling_factor);
+        drawSurface();
+        drawAllHexagons();
+        determineRemovedEdge();
+    glPopMatrix();
 }
 
 void drawAllHexagons() {
@@ -438,7 +438,7 @@ void updateRotationStep() {
 
 void drawAgent() {
     glPushMatrix();
-        glBindTexture(GL_TEXTURE_2D, names[0]);
+        glBindTexture(GL_TEXTURE_2D, texture_names[0]);
         glEnable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
             glColor3f(0, 1, 0);
@@ -457,7 +457,6 @@ void drawAgent() {
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 }
-
 
 void detectColission() {
     int nearest_idx = hexagons_idx_by_size[NUMBER_OF_HEXAGONS-1];
@@ -488,7 +487,6 @@ void detectColission() {
             number_of_lives--;
             already_detected_colission_for_current_hexagon = 1;
         }
-        
     }
 }
 
@@ -547,7 +545,7 @@ void displayGameOver() {
     float vertical_offset = 0.03;
 
     glPushMatrix();
-        glBindTexture(GL_TEXTURE_2D, names[1]);
+        glBindTexture(GL_TEXTURE_2D, texture_names[1]);
         glEnable(GL_TEXTURE_2D);
         glRotatef(90, 0, 1, 0);
         glTranslatef(-0.2, 0, 0);
