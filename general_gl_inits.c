@@ -27,10 +27,10 @@ void initLightning() {
 }
 
 void initMaterial() {
-    GLfloat ambient[] = {0.3,0.3,0.3,0};
-    GLfloat diffuse[] = {0,0.7,0,0};
-    GLfloat specular[] = {0.6,0.6,0.6,0};
-    GLfloat shininess = 40;
+    GLfloat ambient[] =  {0.3, 0.3, 0.3, 0};
+    GLfloat diffuse[] =  {0,   0.7,  0,  0};
+    GLfloat specular[] = {0.6, 0.6, 0.6, 0};
+    GLfloat shininess = 40 ;
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);

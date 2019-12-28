@@ -68,12 +68,13 @@ int already_detected_colission_for_current_hexagon = 0;
 
 GLuint texture_names[2];
 
+//? see: https://www.schemecolor.com/pastel-infinity-stones.php
 GLfloat hexagon_colors[5][3] = {
-    {224.0/255.0, 1, 1},
+    {224.0/255.0,           1,           1},
     {199.0/255.0, 206.0/255.0, 234.0/255.0},
-    {1, 218.0/255.0, 193.0/255.0},
-    {1, 154./255.0, 162.0/255.0},
-    {1, 1, 216.0/255.0}
+    {1,           218.0/255.0, 193.0/255.0},
+    {1,           154.0/255.0, 162.0/255.0},
+    {1,             1,         216.0/255.0}
 };  
 
 point vertices[12] = {
@@ -98,9 +99,9 @@ point vertices[12] = {
     };
 
 point agent_pos[3] = {
-    {0.025,  0, 0},
-    {-0.025, 0, 0},
-    {0,  0, 0.1},
+    {0.025,  0,    0},
+    {-0.025, 0,    0},
+    {0,      0,   0.1}
 };
 
 Hexagon hexagons[NUMBER_OF_HEXAGONS];
