@@ -462,10 +462,7 @@ void detectColission() {
     //? We have normalized coord system so we can do this
     float hexagon_y = hexagons[nearest_idx].scaling_factor;
 
-    int colission_detected = 0;
-
     if (fabsf (agent_z - hexagon_y) <= COLLISION_SAFE_DISTANCE && !goes_through_removed_edge) {
-        colission_detected = 1;
         if(!already_detected_colission_for_current_hexagon) {
             number_of_lives--;
             already_detected_colission_for_current_hexagon = 1;
