@@ -1,7 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
-#define GL_SILENCE_DEPRECATION
-#include <GLUT/glut.h>
+#include <GL/glut.h>
 
 typedef GLfloat point[3];
 

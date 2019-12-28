@@ -1,8 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define GL_SILENCE_DEPRECATION
-#include <GLUT/glut.h>
+#include <GL/glut.h>
 
 #define WINDOW_WIDTH (1920)
 #define WINDOW_HEIGHT (1000)
