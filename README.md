@@ -15,7 +15,7 @@ In order to sucessfully build Linux version, go to branch `linux-build` before y
 
 #### Installing GLUT (on most common distros)
 `sudo apt-get install freeglut3-dev` on Ubuntu  
-`sudo pacman -S freeglut` on Arch
+`sudo pacman -S freeglut` on Arch  
 `yum install freeglut` on Fedora
 
 - In order to build the code, you can just run: `make`  
