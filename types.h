@@ -4,6 +4,7 @@
 
 typedef GLfloat point[3];
 
+//? used for keeping all the relevant info for hexagon, used mainly for proper drawing and proper game logic
 typedef struct {
     point* vertices;
     int index;

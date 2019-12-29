@@ -8,6 +8,9 @@ LDLIBS  = -lglut -lGLU -lGL
 build: 
 	$(CC) $(CFLAGS) $(INPUT) -std=c11 -o $(OUTPUT) $(LDFLAGS) $(LDLIBS)
 	
+run:
+	./main.out
+
 .PHONY: clean dist
 
 clean:

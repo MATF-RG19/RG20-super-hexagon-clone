@@ -362,6 +362,8 @@ float getRandomizedScalingFactor(int idx) {
      //? see: https://www.geeksforgeeks.org/generating-random-number-range-c/
     float scaling = 0;
 
+    //? we need to make sure that newly rescaled hexagon has the biggest size, cuz we don't want
+    //? to have a situation where the newly rescaled hexagons is not the biggest in order to avoid all sorts off bugs and complications
     while(impossibleScaling(idx, scaling)) {
         scaling = (rand() % (UPPER_LIMIT - LOWER_LIMIT + 1)) + LOWER_LIMIT;
         scaling /= 10;
@@ -380,7 +382,8 @@ int impossibleScaling(int idx, float scaling) {
 }
 
 void rearrangeHexagons() {
-    //? SHR
+    //? we are just updating the order of the hexagons, starting from the biggest, since we know that 
+    //? when the hexagon rescales it most become the biggest of them all, so we want to update our ordering
     int tmp_arr[NUMBER_OF_HEXAGONS];
 
     for (int i = 0; i < NUMBER_OF_HEXAGONS-1; i++) {
@@ -394,6 +397,7 @@ void rearrangeHexagons() {
 }
 
 void checkForImpassableTerrain() {
+    //? these will always be the 2 biggest hexagons
     int hex0_idx = hexagons_idx_by_size[0];
     int hex1_idx = hexagons_idx_by_size[1];
 
@@ -450,6 +454,8 @@ void detectColission() {
     int right_angle = current_hexagon.removed_edge * 60;
     int left_angle = (current_hexagon.removed_edge + 1) * 60;
 
+    //? checking if we are passing through the edge knowing how much hexagons needed to rotate
+    //? checks are both for clockwise and counterclockwise rotations
     int goes_through_removed_edge = 0;
     if(right_angle <= rotation_step && rotation_step <= left_angle) {
         goes_through_removed_edge = 1;
