@@ -8,6 +8,9 @@ LDFLAGS   = -framework GLUT -framework OpenGL -framework Cocoa
 build: 
 	$(CC) $(CFLAGS) $(INPUT) -std=c11 -o $(OUTPUT) $(LDFLAGS) && rm -rf *.dSYM
 	
+run:
+	./main.out
+
 .PHONY: clean dist
 
 clean:

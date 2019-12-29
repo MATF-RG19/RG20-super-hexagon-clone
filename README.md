@@ -11,9 +11,22 @@ Goal in this game is to pass through as many hexagons as possible before you los
 
 ### Linux and OS X
 
-For both Linux and OS X command is the same, you just run: `make` 
+In order to sucessfully build Linux version, go to branch `linux-build` before you actually try to build the game. Additionaly, you'll need GLUT library, if you haven't installed it already, since it usually doesn't come by default.
 
-In order to sucessfully build Linux version, go to branch `linux-build` before you actually try to build the game.
+#### Installing GLUT (on most common distros)
+`sudo apt-get install freeglut3-dev` on Ubuntu  
+`sudo pacman -S freeglut` on Arch
+`yum install freeglut` on Fedora
+
+- In order to build the code, you can just run: `make`  
+- In order to run the code, you can just run `make run` or just directly run `./main.out`
+
+### OS X
+
+`GLUT` library should be available without any additional installations.
+
+- In order to build the code, you can just run: `make`  
+- In order to run the code, you can just run `make run` or just directly run `./main.out`
 
 ### Windows
 
